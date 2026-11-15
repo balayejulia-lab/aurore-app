@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Aurore",
+    "slug": "aurore",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "aurore",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.auroresoutien.app",
+      "supportsTablet": false
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F8DE7E",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 150
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aurore utilise tes photos pour que tu choisisses des images apaisantes. Elles restent sur ton téléphone.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}
