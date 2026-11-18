@@ -24,7 +24,7 @@ function CarteSection({ Icone, fond, couleur, sourcil, titre, bouton, children }
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 24 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
           <Bulle Icone={Icone} fond={fond} couleur={couleur} taille={44} rayon={16} iconTaille={20} />
-          <View style={{ flex: 1 }}><Sourcil color={couleur}>{sourcil}</Sourcil><H size={20}>{titre}</H></View>
+          <View style={{ flex: 1 }}><H size={20}>{titre}</H></View>
         </View>
         {bouton}
       </View>
@@ -37,10 +37,6 @@ export function EcranUrgence() {
   const { c } = useApp();
   return (
     <View style={{ gap: 20 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: c.rose100, alignItems: 'center', justifyContent: 'center' }}><ShieldCheck size={20} color={c.rose600} /></View>
-        <Sourcil color={c.rose600}>RESSOURCES D'URGENCE</Sourcil>
-      </View>
       <Numeros />
       <Trousse />
       <Contacts />
@@ -56,7 +52,7 @@ function Numeros() {
   return (
     <CarteSection Icone={Phone} fond={c.rose100} couleur={c.rose600} sourcil="EN CAS DE BESOIN" titre="Numéros à appeler"
       bouton={<Pastille titre={ouvert ? 'Replier' : 'Ouvrir'} onPress={() => setOuvert(!ouvert)} fond={c.rose50} couleur={c.rose700} />}>
-      <T size={14} lh={24} color={c.muted} style={{ paddingHorizontal: 24, paddingBottom: 12 }}>Si tu as besoin d'en parler, appelle le {lien('3114')} (prévention suicide, gratuit 24h/24). En cas de danger immédiat, appelle le {lien('15')} (SAMU) ou le {lien('112')}. Tu n'as pas à traverser ça seul(e).</T>
+      <T size={14} weight="500" color={c.muted} style={{ paddingHorizontal: 24, paddingBottom: 12 }}>Tu n'as pas à traverser ça seul(e).</T>
       <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 24, paddingBottom: 20 }}>
         {RAPIDES.map(([nom, tel, aff]) => (
           <Pressable key={tel} accessibilityRole="button" accessibilityLabel={`Appeler ${nom}, ${aff}`} onPress={() => appeler(tel)}
@@ -109,9 +105,8 @@ function Trousse() {
     <View style={{ backgroundColor: c.surface, borderRadius: 20, borderWidth: 1, borderColor: c.line, padding: 24 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 16 }}>
         <Bulle Icone={BriefcaseMedical} fond={c.amber50} couleur={c.amber600} />
-        <View><Sourcil color={c.amber600}>PETITE PAUSE</Sourcil><H size={20}>Un moment pour toi</H></View>
+        <H size={20}>Un moment pour toi</H>
       </View>
-      <T size={14} lh={24} color={c.muted} style={{ marginBottom: 16 }}>Quand tu en as besoin, prends quelques minutes pour souffler ou te recentrer — à tout moment, pas seulement dans les coups durs.</T>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {OUTILS.map(([k, Icone, label, fond, col]) => (
           <Pressable key={k} accessibilityRole="button" onPress={() => { tap(); setActif(k); }}
@@ -268,7 +263,7 @@ function Contacts() {
   return (
     <CarteSection Icone={HeartPulse} fond="#D1FAE5" couleur={c.emerald700} sourcil="TON RÉSEAU PERSONNEL" titre="Tes contacts de confiance"
       bouton={<Pastille titre={ouvert ? 'Replier' : 'Ouvrir'} onPress={() => setOuvert(!ouvert)} fond={c.emerald50} couleur={c.emerald700} />}>
-      <T size={14} lh={24} color={c.muted} style={{ paddingHorizontal: 24, paddingBottom: ouvert ? 12 : 24 }}>Les personnes que tu choisis toi-même et que tu peux appeler quand tu as besoin de parler — ta psy, un proche, quelqu'un en qui tu as confiance.</T>
+      {!ouvert && <View style={{ height: 2 }} />}
       {ouvert && (
         <View style={{ gap: 12, paddingHorizontal: 24, paddingBottom: 28 }}>
           <View style={{ borderRadius: 16, backgroundColor: c.surface, padding: 16, borderWidth: 1, borderColor: c.ring, gap: 8 }}>

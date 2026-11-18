@@ -53,7 +53,6 @@ export function Favoris({ proche }: { proche?: boolean }) {
             ))}
           </View>
         )}
-        <Avertissement texte="Retrouve ici les témoignages et réponses que tu as gardés, dans ton espace de proche." />
       </Ecran>
     );
   }

@@ -1,23 +1,23 @@
 import { router } from 'expo-router';
-import { Lock, LogIn, Mail, UserPlus } from 'lucide-react-native';
+import { ArrowLeft, Lock, Mail, Shield } from 'lucide-react-native';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useApp } from '@/store';
-import { T, t, tap } from '@/ui';
+import { H, SoleilEntier, T, t, tap } from '@/ui';
 
-// Page de connexion / inscription du site (AuthLayout), avec en plus Apple et Google.
-// Beta : aucun vrai compte, chaque bouton mène à la suite du parcours.
+// Page de connexion de la 1re beta (bandeau de l'aube, soleil entier, gros boutons ronds),
+// avec la connexion et la création de compte par email du site.
 export function EcranAuth({ mode }: { mode: 'connexion' | 'inscription' }) {
-  const { ouvrirCompte, existe } = useApp();
+  const { c, ouvrirCompte, existe } = useApp();
   const insets = useSafeAreaInsets();
+  const [vue, setVue] = useState<'choix' | 'connexion' | 'inscription'>(mode === 'inscription' ? 'inscription' : 'choix');
   const [email, setEmail] = useState('');
   const [mdp, setMdp] = useState('');
   const [mdp2, setMdp2] = useState('');
   const [erreur, setErreur] = useState('');
-  const inscription = mode === 'inscription';
-  const Icone = inscription ? UserPlus : LogIn;
+  const inscription = vue === 'inscription';
 
   // Un compte = un seul profil : s'il existe déjà, on retrouve son côté (patient OU proche), sinon on passe par l'inscription.
   const entrer = (id: string) => { const p = ouvrirCompte(id); router.replace(p ? (`/${p}` as const) : '/bienvenue'); };
@@ -29,44 +29,66 @@ export function EcranAuth({ mode }: { mode: 'connexion' | 'inscription' }) {
     if (!inscription && !existe(id)) return setErreur("Aucun compte avec cet email. Crée-en un.");
     setErreur(''); entrer(id);
   };
+  const changer = (v: typeof vue) => { tap(); setVue(v); setErreur(''); };
+  const pilule = { height: 54, borderRadius: 27, flexDirection: 'row' as const, alignItems: 'center' as const, justifyContent: 'center' as const, gap: 10 };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#FFFFFF' }}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
-        <View style={{ alignItems: 'center', marginBottom: 40 }}>
-          <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: '#171717', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-            <Icone size={28} color="#FAFAFA" />
-          </View>
-          <T size={30} weight="700" color="#0A0A0A" lh={36} center>{inscription ? t('auth.createAccount') : t('auth.welcomeBack')}</T>
-          <T color="#737373" center style={{ marginTop: 8 }}>{inscription ? t('auth.registerSubtitle') : t('auth.loginSubtitle')}</T>
-        </View>
-
-        <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5E5', padding: 24, gap: 16, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } }}>
-          <BoutonSocial titre="Continuer avec Apple" noir onPress={() => entrer('apple')} logo={<LogoApple />} />
-          <BoutonSocial titre="Continuer avec Google" onPress={() => entrer('google')} logo={<LogoGoogle />} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#E5E5E5' }} />
-            <T size={13} color="#737373">{t('auth.or')}</T>
-            <View style={{ flex: 1, height: 1, backgroundColor: '#E5E5E5' }} />
-          </View>
-          {!!erreur && <View style={{ padding: 12, borderRadius: 8, backgroundColor: 'rgba(239,68,68,0.1)' }}><T size={14} color="#DC2626">{erreur}</T></View>}
-          <ChampIcone label={t('auth.email')} Icone={Mail} value={email} onChangeText={setEmail} placeholder={t('auth.emailPlaceholder')} email />
-          <ChampIcone label={t('auth.password')} Icone={Lock} value={mdp} onChangeText={setMdp} placeholder="••••••••" secret
-            droite={!inscription ? <T size={12} color="#171717" onPress={() => {}}>{t('auth.forgotPassword')}</T> : undefined} />
-          {inscription && <ChampIcone label={t('auth.confirmPassword')} Icone={Lock} value={mdp2} onChangeText={setMdp2} placeholder="••••••••" secret />}
-          <Pressable accessibilityRole="button" onPress={() => { tap(); valider(); }}
-            style={({ pressed }) => ({ height: 48, borderRadius: 8, backgroundColor: '#171717', alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.9 : 1 })}>
-            <T size={14} weight="500" color="#FAFAFA">{inscription ? t('auth.registerBtn') : t('auth.loginBtn')}</T>
-          </Pressable>
-          {inscription && (
-            <T size={12} color="#737373" center lh={18}>En créant un compte, tu acceptes nos <T size={12} color="#171717">conditions générales d'utilisation</T> et notre <T size={12} color="#171717">politique de confidentialité</T>.</T>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={{ height: vue === 'choix' ? 320 : 210, backgroundColor: '#FBEFC2', borderBottomLeftRadius: 40, borderBottomRightRadius: 40, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', paddingTop: insets.top }}>
+          <Svg width="100%" height="100%" viewBox="0 0 390 330" preserveAspectRatio="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <Path d="M0 250 C 80 210, 150 230, 210 250 S 330 280, 390 240 L 390 330 L 0 330 Z" fill="#FFE3CF" />
+            <Path d="M0 285 C 90 260, 180 270, 260 290 S 360 300, 390 290 L 390 330 L 0 330 Z" fill={c.bg} />
+          </Svg>
+          <SoleilEntier size={vue === 'choix' ? 120 : 76} />
+          {vue !== 'choix' && mode !== 'inscription' && (
+            <Pressable accessibilityRole="button" accessibilityLabel="Retour" onPress={() => changer('choix')} style={{ position: 'absolute', top: insets.top + 8, left: 16, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.8)', alignItems: 'center', justifyContent: 'center' }}>
+              <ArrowLeft size={20} color="#1E293B" />
+            </Pressable>
           )}
         </View>
 
-        <T size={14} color="#737373" center style={{ marginTop: 24 }}>
-          {inscription ? t('auth.alreadyAccount') : t('auth.noAccount')}{' '}
-          <T size={14} weight="600" color="#171717" onPress={() => (inscription ? router.back() : router.push('/inscription'))}>{inscription ? t('auth.loginBtn') : t('auth.createOne')}</T>
-        </T>
+        <View style={{ flex: 1, padding: 28, paddingBottom: insets.bottom + 24, gap: 20 }}>
+          <View style={{ gap: 8 }}>
+            <H size={30} center>{vue === 'choix' ? 'Bienvenue sur Aurore' : inscription ? t('auth.createAccount') : t('auth.welcomeBack')}</H>
+            {vue === 'choix' && <T color={c.muted} center>Un espace doux pour retrouver ce qui te fait vivre.</T>}
+          </View>
+
+          {vue === 'choix' ? (
+            <View style={{ gap: 12 }}>
+              <Pressable accessibilityRole="button" onPress={() => { tap(); entrer('apple'); }} style={({ pressed }) => [pilule, { backgroundColor: '#000000', opacity: pressed ? 0.85 : 1 }]}>
+                <LogoApple /><T size={17} weight="600" color="#FFFFFF">Continuer avec Apple</T>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={() => { tap(); entrer('google'); }} style={({ pressed }) => [pilule, { backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#E8D9C6', opacity: pressed ? 0.85 : 1 }]}>
+                <LogoGoogle /><T size={17} weight="600" color="#1E293B">Continuer avec Google</T>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={() => changer('connexion')} style={({ pressed }) => [pilule, { backgroundColor: c.navPill, opacity: pressed ? 0.85 : 1 }]}>
+                <Mail size={20} color={c.ink} /><T size={17} weight="600">Continuer avec un email</T>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={{ gap: 14 }}>
+              {!!erreur && <View style={{ padding: 12, borderRadius: 14, backgroundColor: c.rose50 }}><T size={14} color={c.rose600}>{erreur}</T></View>}
+              <ChampIcone label={t('auth.email')} Icone={Mail} value={email} onChangeText={setEmail} placeholder={t('auth.emailPlaceholder')} email />
+              <ChampIcone label={t('auth.password')} Icone={Lock} value={mdp} onChangeText={setMdp} placeholder="••••••••" secret
+                droite={!inscription ? <T size={12} color={c.accent} onPress={() => {}}>{t('auth.forgotPassword')}</T> : undefined} />
+              {inscription && <ChampIcone label={t('auth.confirmPassword')} Icone={Lock} value={mdp2} onChangeText={setMdp2} placeholder="••••••••" secret />}
+              <Pressable accessibilityRole="button" onPress={() => { tap(); valider(); }} style={({ pressed }) => [pilule, { backgroundColor: c.dark, opacity: pressed ? 0.9 : 1 }]}>
+                <T size={16} weight="600" color={c.bg}>{inscription ? t('auth.registerBtn') : t('auth.loginBtn')}</T>
+              </Pressable>
+              <T size={14} color={c.muted} center>
+                {inscription ? t('auth.alreadyAccount') : t('auth.noAccount')}{' '}
+                <T size={14} weight="700" color={c.ink} onPress={() => changer(inscription ? 'connexion' : 'inscription')}>{inscription ? t('auth.loginBtn') : t('auth.createOne')}</T>
+              </T>
+            </View>
+          )}
+
+          <View style={{ flex: 1 }} />
+          <View style={{ flexDirection: 'row', gap: 6, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 8 }}>
+            <Shield size={14} color={c.faint} />
+            <T size={12} lh={18} color={c.faint} style={{ flexShrink: 1 }}>En continuant, tu acceptes les conditions générales d'utilisation et la politique de confidentialité.</T>
+          </View>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -76,26 +98,16 @@ function ChampIcone({ label, Icone, value, onChangeText, placeholder, secret, em
   return (
     <View style={{ gap: 8 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <T size={14} weight="500" color="#0A0A0A">{label}</T>
+        <T size={14} weight="600" color="#475569">{label}</T>
         {droite}
       </View>
       <View style={{ justifyContent: 'center' }}>
         <View style={{ position: 'absolute', left: 12, zIndex: 1 }}><Icone size={16} color="#737373" /></View>
         <TextInput value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#A3A3A3" accessibilityLabel={label}
           secureTextEntry={secret} keyboardType={email ? 'email-address' : 'default'} autoCapitalize="none" autoComplete={email ? 'email' : secret ? 'password' : undefined}
-          style={{ height: 48, borderRadius: 8, borderWidth: 1, borderColor: '#E5E5E5', paddingLeft: 40, paddingRight: 12, fontSize: 15, color: '#0A0A0A' }} />
+          style={{ height: 52, borderRadius: 16, borderWidth: 1, borderColor: '#E8D9C6', backgroundColor: '#FFFFFF', paddingLeft: 40, paddingRight: 12, fontSize: 15, color: '#1E293B' }} />
       </View>
     </View>
-  );
-}
-
-function BoutonSocial({ titre, onPress, logo, noir }: { titre: string; onPress: () => void; logo: React.ReactNode; noir?: boolean }) {
-  return (
-    <Pressable accessibilityRole="button" onPress={() => { tap(); onPress(); }}
-      style={({ pressed }) => ({ height: 48, borderRadius: 8, borderWidth: noir ? 0 : 1, borderColor: '#E5E5E5', backgroundColor: noir ? '#000000' : '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, opacity: pressed ? 0.85 : 1 })}>
-      {logo}
-      <T size={15} weight="600" color={noir ? '#FFFFFF' : '#0A0A0A'}>{titre}</T>
-    </Pressable>
   );
 }
 

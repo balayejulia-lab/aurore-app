@@ -36,7 +36,6 @@ export function Journal({ Icone = BookHeart, fond, couleur, titre, sousTitre, pl
         <Bulle Icone={Icone} fond={fond ?? c.rose50} couleur={couleur ?? c.rose600} />
         <View style={{ flex: 1 }}>
           <H size={20}>{titre ?? t('letter.title')}</H>
-          <T size={14} color={c.muted} style={{ marginTop: 4 }}>{sousTitre ?? t('letter.subtitle')}</T>
         </View>
         <Pastille titre={ouvert ? t('common.collapse') : t('common.open')} onPress={() => setOuvert(!ouvert)} />
         <Pressable accessibilityRole="button" accessibilityLabel={app.verrouille ? t('letter.unlock') : t('letter.lock')} onPress={() => { tap(); cadenas(); }}
@@ -207,7 +206,6 @@ export function Victoires({ sousTitre = 'Chaque pas compte, même petit — et t
         <Bulle Icone={Trophy} fond={c.amber50} couleur={c.amber600} />
         <View style={{ flex: 1 }}>
           <H size={20}>Carnet de victoires</H>
-          <T size={14} color={c.muted}>{sousTitre}</T>
         </View>
         <Pastille titre={ouvert ? 'Replier' : 'Ouvrir'} onPress={() => setOuvert(!ouvert)} fond={c.amber50} couleur={c.amber700} />
       </View>
@@ -274,10 +272,7 @@ export function Encouragement() {
       </View>
       <Pressable accessibilityRole="button" accessibilityState={{ expanded: ouvert }} onPress={() => { tap(); setOuvert(!ouvert); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.rose50, alignItems: 'center', justifyContent: 'center' }}><Noeud taille={17} couleur={c.rose600} /></View>
-        <View style={{ flex: 1 }}>
-          <Sourcil>Envoyer un mot</Sourcil>
-          <T size={12} color={c.faint}>Une phrase toute prête, pour dire ce qui est parfois difficile en face</T>
-        </View>
+        <View style={{ flex: 1 }}><H size={18}>Envoyer un mot</H></View>
         {ouvert ? <ChevronUpPetit /> : <ChevronDownPetit />}
       </Pressable>
       {ouvert && (

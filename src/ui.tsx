@@ -44,7 +44,8 @@ export function Sourcil({ children, color }: { children: ReactNode; color?: stri
 /* ---------- Surfaces ---------- */
 export function Carte({ children, style, onPress, label }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; label?: string }) {
   const c = useC();
-  const base: ViewStyle = { backgroundColor: c.surface, borderRadius: 20, borderWidth: 1, borderColor: c.line, padding: 24, shadowColor: c.shadow, shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } };
+  // Cartes douces de la 1re beta : plus arrondies, sans bordure, ombre légère.
+  const base: ViewStyle = { backgroundColor: c.surface, borderRadius: 24, padding: 22, shadowColor: c.shadow, shadowOpacity: 0.07, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } };
   if (!onPress) return <View style={[base, style]}>{children}</View>;
   return <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => { tap(); onPress(); }} style={({ pressed }) => [base, style, pressed && { transform: [{ scale: 0.98 }] }]}>{children}</Pressable>;
 }
@@ -205,36 +206,22 @@ export function BoutonAide() {
 
 /** En-tête de l'accueil : « Hey prénom », Aide, calendrier, réglages. */
 export function EnTeteAccueil({ nom }: { nom?: string }) {
-  const { c, profil } = useApp();
+  const { profil } = useApp();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 24 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexShrink: 1 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.amber200, alignItems: 'center', justifyContent: 'center' }}><Sun size={19} color="#FAFAFA" /></View>
-        <T size={17} weight="600" color={c.muted} lines={1} style={{ flexShrink: 1 }}>{nom ? t('nav.bonjour', { name: nom }) : t('nav.bonjourDefault')}</T>
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+    <View style={{ paddingBottom: 20, gap: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
         <BoutonAide />
         {profil !== 'proche' && <RondIcone Icone={Calendar} label="Calendrier" onPress={() => router.push('/calendrier')} />}
         <RondIcone Icone={Settings} label={t('settings.title')} onPress={() => router.push('/reglages')} />
       </View>
+      <H size={30} lines={1}>{nom ? t('nav.bonjour', { name: nom }) : t('nav.bonjourDefault')}</H>
     </View>
   );
 }
 
-/** En-tête des pages d'onglet : bulle + sourcil + grand titre, et le bouton Aide. */
-export function EnTetePage({ Icone, fond, couleur, sourcil, sourcilCouleur, titre, sousTitre, aide = true }: { Icone: LucideIcon; fond?: string; couleur?: string; sourcil?: string; sourcilCouleur?: string; titre?: string; sousTitre?: string; aide?: boolean }) {
-  const c = useC();
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-      <Bulle Icone={Icone} fond={fond} couleur={couleur} taille={44} rayon={22} />
-      <View style={{ flex: 1 }}>
-        {sourcil && <Sourcil color={sourcilCouleur}>{sourcil}</Sourcil>}
-        {titre && <H size={28}>{titre}</H>}
-        {sousTitre && <T size={14} color={c.muted}>{sousTitre}</T>}
-      </View>
-      {aide && <BoutonAide />}
-    </View>
-  );
+/** Haut des pages d'onglet : le nom est déjà sous l'icône de la barre, on ne garde que le bouton Aide. */
+export function EnTetePage({ aide = true }: { Icone?: LucideIcon; fond?: string; couleur?: string; sourcil?: string; sourcilCouleur?: string; titre?: string; sousTitre?: string; aide?: boolean }) {
+  return <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 16, minHeight: 36 }}>{aide && <BoutonAide />}</View>;
 }
 
 export function LienRetour({ libelle = 'Retour au profil' }: { libelle?: string }) {

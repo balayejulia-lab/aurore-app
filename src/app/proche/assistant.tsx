@@ -76,7 +76,7 @@ export default function Assistant() {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8, paddingTop: insets.top + 10, paddingBottom: 8 }}>
         <Pressable accessibilityLabel="Historique des conversations" onPress={() => { tap(); setHistorique(true); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}><History size={19} color={c.av700} /></Pressable>
         <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.av50, alignItems: 'center', justifyContent: 'center' }}><Sparkles size={15} color={c.av700} /></View>
-        <H size={16} style={{ flex: 1 }} lines={1}>Assistant des proches</H>
+        <View style={{ flex: 1 }} />
         <BoutonAide />
         <Pressable accessibilityLabel="Nouvelle conversation" onPress={() => { tap(); setCourante(null); setMemoire(false); }} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}><SquarePen size={18} color={c.av700} /></Pressable>
       </View>
@@ -109,8 +109,8 @@ export default function Assistant() {
               {barre(true)}
               <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
                 {SUGGESTIONS.map((s) => (
-                  <Pressable key={s} onPress={() => poser(s)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: c.av50 }}>
-                    <T size={12} weight="500" color={c.av700} center>{s}</T>
+                  <Pressable key={s} onPress={() => poser(s)} style={{ maxWidth: '100%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: c.av50 }}>
+                    <T size={12} weight="500" color={c.av700} center style={{ flexShrink: 1 }}>{s}</T>
                   </Pressable>
                 ))}
               </View>

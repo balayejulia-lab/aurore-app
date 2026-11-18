@@ -23,7 +23,6 @@ export default function Attentions() {
   return (
     <Ecran>
       <EnTetePage Icone={Gift} fond={c.av200} couleur="#4C1D95" sourcil="Pour la personne que tu accompagnes, au quotidien" titre="Petites attentions" />
-      <T size={14} color={c.muted} style={{ marginBottom: 32 }}>Pas besoin d'un grand geste. Ce sont souvent les petites attentions, simples et sincères, qui comptent le plus.</T>
       <DuJour />
       <T size={14} weight="600" color={c.text} style={{ marginTop: 40, marginBottom: 16 }}>D'autres idées, à piocher quand tu veux</T>
       <View style={{ gap: 16 }}>
@@ -71,7 +70,7 @@ function DuJour() {
     <View style={{ borderRadius: 24, backgroundColor: c.surface, padding: 24, borderWidth: 1, borderColor: c.ring }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 }}>
         <Bulle Icone={Sparkles} fond={c.rose50} couleur={c.rose700} iconTaille={17} />
-        <View style={{ flex: 1 }}><Sourcil>Aujourd'hui</Sourcil><H size={20}>Une petite attention pour aujourd'hui</H></View>
+        <View style={{ flex: 1 }}><H size={20}>L'attention du jour</H></View>
       </View>
       {!niveau ? (
         <>

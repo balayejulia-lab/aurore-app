@@ -33,7 +33,7 @@ export default function AccueilProche() {
           <Carte>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
               <Bulle Icone={Trophy} fond={c.amber50} couleur={c.amber600} />
-              <View style={{ flex: 1 }}><H size={20}>Carnet de victoires</H><T size={14} color={c.muted}>Ce que la personne que tu accompagnes a choisi de partager avec toi</T></View>
+              <View style={{ flex: 1 }}><H size={20}>Carnet de victoires</H></View>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12, borderRadius: 12, backgroundColor: 'rgba(255,251,235,0.6)', padding: 14, borderWidth: 1, borderColor: c.amber100 }}>
               <View style={{ marginTop: 2, width: 28, height: 28, borderRadius: 14, backgroundColor: c.amber100, alignItems: 'center', justifyContent: 'center' }}><Trophy size={14} color={c.amber700} /></View>
@@ -63,7 +63,7 @@ function EtToi() {
     <View style={{ gap: 20 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Bulle Icone={Sprout} fond="#D1FAE5" couleur={c.emerald700} taille={44} rayon={22} />
-        <View><Sourcil>Pour toi aussi</Sourcil><H size={30}>Comment tu te sens ?</H></View>
+        <H size={26}>Comment tu te sens ?</H>
       </View>
 
       <View style={boite}>
@@ -95,9 +95,9 @@ function EtToi() {
       <View style={boite}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
           <Bulle Icone={Languages} fond={c.av200} couleur="#4C1D95" taille={44} rayon={22} />
-          <View style={{ flex: 1 }}><Sourcil>Un outil très simple</Sourcil><H size={24}>Traduire ce que je ressens</H></View>
+          <View style={{ flex: 1 }}><H size={22}>Traduire ce que je ressens</H></View>
         </View>
-        <T size={14} lh={24} color={c.muted} style={{ marginBottom: 20 }}>Écris ce que tu as envie de dire à la personne que tu accompagnes, on t'aide à le reformuler avec d'autres mots, plus doux, en commençant par « je ».</T>
+        <T size={14} lh={22} color={c.muted} style={{ marginBottom: 20 }}>Écris ce que tu souhaiterais lui dire, on t'aide avec d'autres mots.</T>
         <T size={14} weight="600" color={c.text} style={{ marginBottom: 12 }}>Je ressens :</T>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {RESSENTIS.map(([id, Icone, label]) => {

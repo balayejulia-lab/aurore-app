@@ -24,7 +24,7 @@ export default function Inspiration() {
       <View style={{ gap: 32 }}>
         <Citation />
         <Possibles />
-        <DeuxChoix Icone={Sparkles} fond="#fbf0e8" couleur="#c08552" sourcil="Défis & Questions inspirantes" choix={[['Défis quotidiens', <Defis key="d" />], ['Questions inspirantes', <Apres key="a" />]]} />
+        <DeuxChoix Icone={Sparkles} fond="#fbf0e8" couleur="#c08552" sourcil="Défis & questions" choix={[['Défis quotidiens', <Defis key="d" />], ['Questions inspirantes', <Apres key="a" />]]} />
         <DeuxChoix Icone={Search} fond={c.amber50} couleur={c.amber700} sourcil="Pinterest" choix={[['Rechercher', <Recherche key="r" site="pinterest" />], ['Vidéos copiées', <Copie key="c" site="pinterest" />]]} />
         <DeuxChoix Icone={Youtube} fond={c.rose50} couleur={c.rose700} sourcil="YouTube" choix={[['Rechercher', <Recherche key="r" site="youtube" />], ['Vidéos copiées', <Copie key="c" site="youtube" />]]} />
       </View>
@@ -43,10 +43,7 @@ function Citation() {
   return (
     <Pressable onPress={() => { const n = Date.now(); if (n - dernier < 300 && !garde) { tap(); basculerFavori(fav); } setDernier(n); }}>
       <Carte>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-          <Bulle Icone={Bell} iconTaille={17} />
-          <View><Sourcil>{t('dailyNotif.title')}</Sourcil><T size={12} color={c.faint}>{t('dailyNotif.subtitle')}</T></View>
-        </View>
+        <View style={{ marginBottom: 16 }}><Bulle Icone={Bell} iconTaille={17} /></View>
         <T size={20} weight="600" lh={28}>“{q.text}”</T>
         <T size={14} color={c.muted} style={{ marginTop: 8, fontStyle: 'italic' }}>— {q.author}{q.source ? `, ${q.source}` : ''}</T>
         <View style={{ marginTop: 20, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
@@ -73,7 +70,7 @@ function Possibles() {
     <Carte>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
         <Bulle Icone={Target} fond="#FEFCE8" couleur="#FED7AA" />
-        <View style={{ flex: 1 }}><H size={20}>{t('goals.title')}</H><T size={14} color={c.muted}>{t('goals.subtitle')}</T></View>
+        <View style={{ flex: 1 }}><H size={20}>{t('goals.title')}</H></View>
         <Pastille titre={ouvert ? t('common.collapse') : t('common.open')} onPress={() => setOuvert(!ouvert)} />
       </View>
       <Paysage />
@@ -193,7 +190,7 @@ function DeuxChoix({ Icone, fond, couleur, sourcil, choix }: { Icone: LucideIcon
     <View style={{ borderRadius: 24, backgroundColor: c.surface, padding: 24, borderWidth: 1, borderColor: c.ring }}>
       <Pressable onPress={() => { tap(); setOuvert(!ouvert); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <Bulle Icone={Icone} fond={fond} couleur={couleur} iconTaille={17} />
-        <View style={{ flex: 1 }}><Sourcil>{sourcil}</Sourcil></View>
+        <View style={{ flex: 1 }}><H size={18}>{sourcil}</H></View>
         <Pastille titre={ouvert ? t('common.collapse') : t('common.open')} onPress={() => setOuvert(!ouvert)} />
       </Pressable>
       {ouvert && (
@@ -217,7 +214,6 @@ function Pioche({ titre, sousTitre, couleur, fond, onPress }: { titre: string; s
     <Pressable onPress={() => { tap(); onPress(); }} style={({ pressed }) => ({ height: 224, borderRadius: 24, borderWidth: 1, borderColor: '#e7d9c8', backgroundColor: fond, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
       <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#e7d9c8' }}><RotateCw size={22} color={couleur} /></View>
       <T size={18} weight="500" color="#5a4332">{titre}</T>
-      <T size={12} lh={20} color="#94A3B8" center style={{ maxWidth: 280 }}>{sousTitre}</T>
     </Pressable>
   );
 }
@@ -331,7 +327,6 @@ function Recherche({ site }: { site: 'pinterest' | 'youtube' }) {
           ))}
         </View>
       </ScrollView>
-      {pin && <T size={12} color={c.faint} style={{ marginTop: 16 }}>Astuce : sur Pinterest, ouvre un pin puis copie son lien (icône Partager → Copier le lien) pour l'ajouter à tes favoris.</T>}
     </View>
   );
 }
