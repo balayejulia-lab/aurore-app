@@ -1,6 +1,3 @@
-import { TEMOIGNAGES_PROCHE } from '@/data';
-import { Temoignages } from '@/temoignages';
-
-export default function TemoignagesProche() {
-  return <Temoignages liste={TEMOIGNAGES_PROCHE} sousTitre="D'autres proches racontent" />;
-}
+import { TEMOIGNAGES_PROCHE } from '@/contenu/temoignages';
+import { Temoignages } from '@/ecrans/Temoignages';
+export default function TemoignagesProche() { return <Temoignages liste={TEMOIGNAGES_PROCHE} proche />; }

@@ -11,6 +11,12 @@ const REPONSE_CORPS =
   "Je préfère ne pas parler de chiffres, de poids ou d'alimentation : c'est le rôle de l'équipe médicale qui accompagne ton proche. Je peux t'aider sur la manière d'être présent·e, de trouver les mots, ou de prendre soin de toi.";
 
 const REPONSES: [RegExp, string][] = [
+  [/ne pas dire|dire, et/i, "**Ce qui aide :** dire simplement que tu es là, parler de ce que vous aimez faire ensemble, valoriser la personne pour qui elle est.\n\n**À éviter :** les remarques sur l'apparence, l'assiette ou le corps (même pour complimenter), et les « il suffit de… ». Si tu hésites, une phrase comme « Je suis là si tu as besoin » ne fait jamais de mal."],
+  [/mentalement|moral/i, "Même quand le moral remonte, les pensées liées au trouble peuvent rester présentes en arrière-plan. Ça ne veut pas dire que rien n'avance : c'est souvent une période fragile, où la personne a besoin de sentir qu'on ne la juge pas sur les apparences. Lui demander « Comment tu te sens, vraiment ? » sans attendre de réponse précise peut beaucoup aider."],
+  [/expliquer|entourage/i, "Tu peux rester simple : « C'est une maladie, pas un choix ni un caprice. Elle se soigne, avec du temps et une équipe. Ce qui aide, c'est d'être présent sans commenter l'assiette ni l'apparence. » Tu n'as pas à tout raconter : tu choisis ce que tu partages, avec l'accord de la personne si possible."],
+  [/brusquer|quotidien/i, "Garder des moments « normaux » ensemble, proposer sans insister, accepter un non, et laisser la personne décider du rythme. Les petites attentions comptent souvent plus que les grandes discussions."],
+  [/prendre soin de moi/i, "Tu as le droit de souffler. Garde des moments pour toi, parle à quelqu'un de confiance, et n'hésite pas à te faire accompagner : des groupes et associations existent aussi pour les familles et les proches. Prendre soin de toi, c'est aussi tenir sur la durée."],
+  [/aide professionnelle|professionnel|où trouver/i, "Le médecin traitant est souvent la première porte d'entrée : il peut orienter vers une équipe spécialisée en troubles des conduites alimentaires. Pour une écoute, la ligne Anorexie Boulimie Info Écoute (09 69 325 900) accompagne aussi les proches. En cas d'urgence, le 15 ou le 3114."],
   [/parler|veut pas|refuse|silence|ferm/i, "C'est souvent un besoin de se protéger, pas un rejet. Tu peux lui dire simplement que tu es là, sans insister, et partager un moment qui vous fait du bien. La porte reste ouverte."],
   [/dire|mots|ce soir|phrase/i, "Quelques mots simples suffisent souvent : « Je suis là », « Je t'aime comme tu es », « On fait quelque chose ensemble ce week-end ? ». Parler d'un projet futur aide aussi à regarder vers l'avant."],
   [/moi|fatigu|épuis|épuis|craqu|seul/i, "Ce que tu ressens est normal : accompagner quelqu'un, c'est beaucoup. Prends du temps pour toi sans culpabiliser. Des associations accompagnent aussi les proches ; en parler peut vraiment alléger."],
@@ -25,13 +31,13 @@ export function repondre(question: string): string {
     ?? "Merci de me poser la question. Ce qui aide souvent : être présent·e sans pression, valoriser chaque petit pas, et parler de ce qui fait envie pour la suite. Tu veux qu'on cherche ensemble des mots pour lui en parler ?";
 }
 
-// Outil « Traduire ce que je ressens » : propose une formulation douce, centrée sur le « je ».
-export function adoucir(texte: string): string[] {
-  const t = texte.trim().replace(/[.!?]+$/, '');
-  if (!t) return [];
-  if (DETRESSE.test(t)) return [REPONSE_DETRESSE];
-  return [
-    `J'ai envie de te dire quelque chose qui me tient à cœur : ${t.charAt(0).toLowerCase()}${t.slice(1)}. Je te le dis parce que je tiens à toi.`,
-    `Je ne trouve pas toujours les bons mots, mais voilà ce que je ressens : ${t.charAt(0).toLowerCase()}${t.slice(1)}. Je suis là, quoi qu'il arrive.`,
-  ];
+// Outil « Traduire ce que je ressens » (simulé) : reformule en « je », sans accuser.
+const NOMS: Record<string, string> = { inquietude: "de l'inquiétude", frustration: 'de la frustration', tristesse: 'de la tristesse', incomprehension: "de l'incompréhension" };
+export function traduireEnJe(pensee: string, ressentis: string[]): string {
+  const t = pensee.trim().replace(/[.!?]+$/, '');
+  if (!t) return '';
+  if (DETRESSE.test(t)) return REPONSE_DETRESSE;
+  const liste = ressentis.map((r) => NOMS[r]).filter(Boolean);
+  const ressens = liste.length ? `Je ressens ${liste.length > 1 ? `${liste.slice(0, -1).join(', ')} et ${liste[liste.length - 1]}` : liste[0]}` : "J'ai besoin de te dire quelque chose";
+  return `${ressens} quand je pense à ça : « ${t.charAt(0).toLowerCase()}${t.slice(1)} ». Je te le dis parce que je tiens à toi, et j'aimerais qu'on puisse en parler, à ton rythme.`;
 }

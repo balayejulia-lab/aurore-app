@@ -1,13 +1,15 @@
+import { Clapperboard, Gift, Heart, Home, Sparkles } from 'lucide-react-native';
 import { Onglets } from '@/onglets';
+import { t } from '@/ui';
 
 export default function ProcheLayout() {
   return (
     <Onglets onglets={[
-      ['index', 'Accueil', 'home'],
-      ['pour-toi', 'Pour toi', 'smile'],
-      ['attentions', 'Attentions', 'gift'],
-      ['assistant', 'Assistant', 'sparkle'],
-      ['temoignages', 'Témoignages', 'book'],
+      ['index', t('nav.profil'), Home],
+      ['attentions', t('nav.petitesAttentions'), Gift],
+      ['assistant', t('nav.assistantProches'), Sparkles],
+      ['temoignages', t('nav.temoignages'), Clapperboard],
+      ['favoris', t('nav.favoris'), Heart],
     ]} />
   );
 }

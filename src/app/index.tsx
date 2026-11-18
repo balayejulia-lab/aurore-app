@@ -1,36 +1,45 @@
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { View } from 'react-native';
-import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { SoleilLevant, T } from '@/ui';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming, withDelay } from 'react-native-reanimated';
+import Svg, { Circle, G, Line, Rect } from 'react-native-svg';
+import { useApp } from '@/store';
 
-// Écran de chargement : c'est le seul endroit où le soleil se lève derrière la barre.
-function Point({ delai }: { delai: number }) {
-  const o = useSharedValue(0.25);
-  useEffect(() => { o.value = withDelay(delai, withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0.25, { duration: 500 })), -1)); }, [delai, o]);
-  const style = useAnimatedStyle(() => ({ opacity: o.value }));
-  return <Animated.View style={[{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#5C4636' }, style]} />;
-}
+// Écran de chargement du site : soleil blanc qui se lève derrière la barre, sur fond jaune.
+// Le soleil est coupé au niveau de la barre : il ne passe jamais dessous.
+const W = 180, H = (W * 500) / 838, COUPE = ((525 - 110) / 500) * H, U = H / 500;
 
 export default function Ouverture() {
-  const montee = useSharedValue(30);
+  const { nuit, connecte, profil } = useApp();
+  const y = useSharedValue(260 * U);
+  const o = useSharedValue(1);
   useEffect(() => {
-    montee.value = withTiming(0, { duration: 1400, easing: Easing.out(Easing.cubic) });
-    const t = setTimeout(() => router.replace('/connexion'), 2200);
+    y.value = withRepeat(withSequence(withTiming(0, { duration: 1500, easing: Easing.bezier(0.22, 0.8, 0.3, 1) }), withDelay(520, withTiming(46 * U, { duration: 360 })), withTiming(260 * U, { duration: 1 })), -1);
+    o.value = withRepeat(withSequence(withDelay(2020, withTiming(0, { duration: 360 })), withTiming(1, { duration: 1 })), -1);
+    const t = setTimeout(() => router.replace(!connecte ? '/connexion' : profil ? (`/${profil}` as const) : '/bienvenue'), 2300);
     return () => clearTimeout(t);
-  }, [montee]);
-  const soleil = useAnimatedStyle(() => ({ transform: [{ translateY: montee.value }] }));
+  }, [y, o, connecte, profil]);
+  const soleil = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }], opacity: o.value }));
+  const couleur = nuit ? '#F8DE7E' : '#FFFFFF';
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8DE7E', alignItems: 'center', justifyContent: 'center', gap: 28, overflow: 'hidden' }}>
-      <View style={{ position: 'absolute', left: -80, right: -80, bottom: -260, height: 520, borderRadius: 400, backgroundColor: '#FBEFC2' }} />
-      <Animated.View style={soleil}><SoleilLevant width={150} /></Animated.View>
-      <Animated.View entering={FadeIn.duration(1200).delay(400)} style={{ alignItems: 'center', gap: 8 }}>
-        <T size={46} weight="title" color="#3B2A20" style={{ lineHeight: 56 }}>Aurore</T>
-        <T size={17} color="#5C4636">La vie qui revient, à ton rythme</T>
-      </Animated.View>
-      <View accessibilityLabel="Chargement" style={{ position: 'absolute', bottom: 64, flexDirection: 'row', gap: 8 }}>
-        <Point delai={0} /><Point delai={180} /><Point delai={360} />
+    <View accessibilityRole="progressbar" accessibilityLabel="Chargement d'Aurore" style={{ flex: 1, backgroundColor: nuit ? '#17162A' : '#F8DE7E', alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: W, height: H }}>
+        <View style={{ height: COUPE, overflow: 'hidden' }}>
+          <Animated.View style={soleil}>
+            <Svg width={W} height={H} viewBox="40 110 838 500">
+              <Circle cx={448} cy={457} r={154} fill="none" stroke={couleur} strokeWidth={52} />
+              <G stroke={couleur} strokeWidth={45} strokeLinecap="round">
+                <Line x1={448} y1={160} x2={448} y2={225} /><Line x1={565} y1={256} x2={598} y2={200} /><Line x1={330} y1={256} x2={297} y2={200} />
+                <Line x1={650} y1={340} x2={707} y2={308} /><Line x1={247} y1={340} x2={190} y2={308} />
+                <Line x1={682} y1={458} x2={746} y2={458} /><Line x1={150} y1={458} x2={214} y2={458} />
+              </G>
+            </Svg>
+          </Animated.View>
+        </View>
+        <Svg width={W} height={H} viewBox="40 110 838 500" style={{ position: 'absolute', top: 0 }}>
+          <Rect x={71} y={525} width={782} height={61} rx={30.5} fill={couleur} />
+        </Svg>
       </View>
     </View>
   );

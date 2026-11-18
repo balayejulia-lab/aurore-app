@@ -1,16 +1,21 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { ArrowLeft, Bell, Compass, Heart, HeartHandshake, LifeBuoy, Mail, Sparkles, Target, Users, type LucideIcon } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useApp, type Envie, type Profil } from '@/store';
-import { Bouton, Champ, Icon, Puce, RondBouton, SoleilEntier, T, Titre, tap, type IconName } from '@/ui';
+import { CO_FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/coFoundersLetter';
+import { FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/foundersLetter';
+import { useApp, type Profil } from '@/store';
+import { BoutonPlein, ChoixAmbiance, H, T, tap } from '@/ui';
 
-const ETAPES = 6;
-const ENVIES_PROPOSEES: [Envie['categorie'], string][] = [
-  ['Passion', 'Reprendre la musique'], ['Passion', 'Dessiner, peindre'], ['Rêve', 'Voyager'],
-  ['Projet', 'Reprendre mes études'], ['Passion', 'Faire du jardinage'], ['Rêve', 'Aller à un concert'],
-  ['Projet', 'Retrouver mes amis'], ['Passion', 'Lire à nouveau'],
+// Inscription du site, étape par étape, avec les lettres d'origine.
+const FONCTIONS: [LucideIcon, string, string, string, string][] = [
+  [Compass, '#0F766E', '#F0FDFA', 'Ton paysage évolutif', 'Ton parcours se transforme en un paysage qui se colore et prend vie à mesure que tu coches tes objectifs.'],
+  [Target, '#B45309', '#FFFBEB', 'Ton avenir, à ton rythme', "Note tes projets, tes passions, tes raisons d'avancer — petits pas après petits pas."],
+  [Sparkles, '#BE123C', '#FFF1F2', "De l'inspiration chaque jour", 'Phrases, témoignages et images pour nourrir ton élan et te recentrer.'],
+  [Users, '#7D34C5', '#F5E3E6', 'Un espace pour tes proches', "Des réponses fondées et des témoignages pour celles et ceux qui t'aiment."],
+  [LifeBuoy, '#0369A1', '#F0F9FF', 'Une présence rassurante', "Ressources d'urgence et contacts, toujours à portée quand tu en as besoin."],
 ];
 
 export default function Bienvenue() {
@@ -19,177 +24,208 @@ export default function Bienvenue() {
   const insets = useSafeAreaInsets();
   const [etape, setEtape] = useState(0);
   const [profil, setProfil] = useState<Profil | null>(null);
-  const [prenom, setPrenom] = useState('');
-  const [lettreOuverte, setLettreOuverte] = useState(false);
-  const [choix, setChoix] = useState<string[]>([]);
-  const [code, setCode] = useState('');
+  const [surnom, setSurnom] = useState('');
 
-  const suivant = () => {
-    if (etape === 1) app.setPrenom(prenom.trim());
-    if (etape === 3 && profil === 'patient') ENVIES_PROPOSEES.filter(([, t]) => choix.includes(t)).forEach(([cat, t]) => app.ajouterEnvie(cat, t));
-    if (etape < ETAPES - 1) return setEtape(etape + 1);
-    app.setProfil(profil!);
-    app.setLien(profil === 'proche' ? 'Juju' : 'Maman'); // beta : un proche fictif déjà lié pour voir les petits mots
-    router.replace(profil === 'proche' ? '/proche' : '/patient');
+  const terminer = (p: Profil) => {
+    app.setProfil(p);
+    if (p === 'patient') app.setSurnom(surnom.trim());
+    app.setPartenaire(null);
+    router.replace(`/${p}`);
   };
-  const peutContinuer = [!!profil, prenom.trim().length > 0, lettreOuverte, true, true, true][etape];
+  const choisir = (p: Profil) => { setProfil(p); setEtape(1); };
+  const retour = () => setEtape((e) => e - 1);
+  // Patient : 1 lettre, 2 rappel, 3 bienvenue, 4 surnom, 5 notifications. Proche : 1 lettre, 2 notifications.
+  const fin = profil === 'proche' ? 2 : 5;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
-      <View style={{ paddingTop: insets.top + 12, paddingHorizontal: 24, gap: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44 }}>
-          {etape > 0 ? <RondBouton icone="left" label="Étape précédente" onPress={() => setEtape(etape - 1)} /> : <View style={{ width: 44 }} />}
-          <View accessibilityLabel={`Étape ${etape + 1} sur ${ETAPES}`} style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: c.line }}>
-            <View style={{ width: `${((etape + 1) / ETAPES) * 100}%`, height: 6, borderRadius: 3, backgroundColor: c.gold }} />
-          </View>
-          <T size={13} weight="semibold" color={c.muted}>{etape + 1}/{ETAPES}</T>
-        </View>
-      </View>
-
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 22 }} keyboardShouldPersistTaps="handled">
-        <Animated.View key={etape} entering={FadeInDown.duration(500)} style={{ gap: 22 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 16, paddingTop: insets.top + 32, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
+        <Animated.View key={etape} entering={FadeIn.duration(350)}>
           {etape === 0 && (
             <>
-              <EnTete titre="Qui es-tu sur Aurore ?" texte="Pour te proposer l'espace qui te correspond." />
-              <ChoixProfil icone="sparkle" titre="Je reprends ma vie en main" texte="Un espace pour retrouver tes envies, à ton rythme." actif={profil === 'patient'} onPress={() => setProfil('patient')} />
-              <ChoixProfil icone="heart" titre="J'accompagne un proche" texte="Des idées et du soutien pour être là, et prendre soin de toi aussi." actif={profil === 'proche'} onPress={() => setProfil('proche')} />
+              <View style={{ marginBottom: 40 }}>
+                <H size={30} center>Pour t'accompagner au mieux</H>
+                <T color={c.muted} center style={{ marginTop: 12 }}>Indique qui tu es. Tu accèderas ensuite à l'espace fait pour toi.</T>
+              </View>
+              <View style={{ gap: 20 }}>
+                <CarteChoix Icone={Heart} fond="#F0FDFA" couleur="#0F766E" titre="Je reprends ma vie en main" texte="Je vis cette épreuve et je veux avancer vers mes projets et mon avenir." onPress={() => choisir('patient')} />
+                <CarteChoix Icone={Users} fond={c.av100} couleur={c.av700} titre="Je suis un proche" texte="J'accompagne une personne atteinte et je veux l'aider au mieux, au quotidien." onPress={() => choisir('proche')} />
+              </View>
+              <T size={12} color={c.faint} center style={{ marginTop: 32 }}>Ce choix oriente simplement ton espace. Tu pourras le personnaliser ensuite.</T>
             </>
           )}
 
           {etape === 1 && (
+            <Lettre proche={profil === 'proche'} onBack={retour} onContinue={() => setEtape(2)} />
+          )}
+
+          {etape === 2 && profil === 'patient' && (
             <>
-              <EnTete titre="Comment veux-tu qu'on t'appelle ?" texte="Un prénom, un surnom… ce qui te fait du bien." />
-              <Champ label="Ton prénom ou surnom" value={prenom} onChangeText={setPrenom} placeholder="Juju" autoFocus maxLength={30} returnKeyType="next" onSubmitEditing={() => prenom.trim() && suivant()} />
+              <Retour onPress={retour} />
+              <View style={{ marginBottom: 32, alignItems: 'center' }}>
+                <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: '#CCFBF1', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(153,246,228,0.7)' }}><Heart size={26} color="#0D9488" /></View>
+                <H size={30} center>Ce qu'Aurore peut faire pour toi</H>
+              </View>
+              <Boite>
+                <T size={18} weight="500" color={c.ink} lh={32}>Elle ne guérit pas à ta place.</T>
+                <T size={15} color={c.soft} lh={32}>Elle ne remplace pas les professionnels qui t'accompagnent.</T>
+                <T size={15} weight="600" color={c.ink} lh={32}>Mais elle peut être là, chaque jour, pour te rappeler pourquoi tu continues.</T>
+              </Boite>
+              <Suivant titre="Continuer" onPress={() => setEtape(3)} />
             </>
           )}
 
-          {etape === 2 && (
+          {etape === 3 && (
             <>
-              <EnTete titre="Une lettre t'attend" texte={lettreOuverte ? 'Prends ton temps pour la lire.' : "Touche l'enveloppe pour l'ouvrir."} />
-              {!lettreOuverte ? (
-                <Pressable accessibilityRole="button" accessibilityLabel="Ouvrir la lettre" onPress={() => { tap(); setLettreOuverte(true); }}
-                  style={({ pressed }) => ({ alignSelf: 'center', marginTop: 20, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
-                  <View style={{ width: 260, height: 170, borderRadius: 20, backgroundColor: c.peach, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <View style={{ position: 'absolute', top: -130, width: 260, height: 260, transform: [{ rotate: '45deg' }], backgroundColor: c.soft, borderRadius: 24 }} />
-                    <View style={{ width: 56, height: 56, borderRadius: 28, backgroundColor: c.card, alignItems: 'center', justifyContent: 'center', marginTop: 30 }}>
-                      <SoleilEntier size={34} />
+              <View style={{ marginBottom: 40, alignItems: 'center' }}>
+                <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 1, borderColor: c.ring }}><Sparkles size={30} color="#F59E0B" /></View>
+                <H size={30} center>Bienvenue sur Aurore</H>
+                <T color={c.muted} center style={{ marginTop: 12 }}>Un espace doux et lumineux pour reconstruire, à ton rythme, après une épreuve liée aux troubles alimentaires. Ici, on parle d'avenir, de projets et de ce qui te fait tenir.</T>
+              </View>
+              <View style={{ gap: 16 }}>
+                {FONCTIONS.map(([Icone, col, fond, titre, texte]) => (
+                  <View key={titre} style={{ flexDirection: 'row', gap: 16, padding: 20, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring }}>
+                    <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: fond, alignItems: 'center', justifyContent: 'center' }}><Icone size={20} color={col} /></View>
+                    <View style={{ flex: 1 }}>
+                      <H size={16}>{titre}</H>
+                      <T size={14} color={c.muted} lh={24} style={{ marginTop: 4 }}>{texte}</T>
                     </View>
                   </View>
-                </Pressable>
-              ) : (
-                <Animated.View entering={FadeIn.duration(700)} style={{ backgroundColor: c.card, borderRadius: 24, padding: 22, gap: 12 }}>
-                  <T size={17} weight="title">{profil === 'proche' ? 'À toi qui accompagnes,' : `À toi, ${prenom.trim() || 'qui arrives ici'},`}</T>
-                  {profil === 'proche' ? (
-                    <>
-                      <T>Si tu es ici, c'est que tu aimes quelqu'un qui traverse une période difficile. Ça demande du courage, et beaucoup d'amour.</T>
-                      <T>Tu n'as pas besoin d'être parfait·e pour être un vrai soutien. Ici, tu trouveras des idées, des mots, et un espace rien que pour toi.</T>
-                    </>
-                  ) : (
-                    <>
-                      <T>Aurore n'est pas un endroit pour parler de la maladie. C'est un endroit pour parler de toi, de ce que tu aimes, de ce qui t'attend.</T>
-                      <T>Ici, rien ne se perd et rien ne recule. Chaque petit pas compte, même les plus discrets.</T>
-                    </>
-                  )}
-                  <T weight="semibold" color={c.link}>L'équipe Aurore</T>
-                </Animated.View>
-              )}
-            </>
-          )}
-
-          {etape === 3 && profil === 'patient' && (
-            <>
-              <EnTete titre="Qu'est-ce qui te fait envie ?" texte="Choisis-en quelques-unes, tu pourras en ajouter d'autres plus tard." />
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-                {ENVIES_PROPOSEES.map(([, t]) => (
-                  <Puce key={t} titre={t} actif={choix.includes(t)} onPress={() => setChoix((l) => (l.includes(t) ? l.filter((x) => x !== t) : [...l, t]))} />
                 ))}
               </View>
-            </>
-          )}
-          {etape === 3 && profil === 'proche' && (
-            <>
-              <EnTete titre="Ce que tu trouveras ici" texte="Trois choses simples, pour toi." />
-              <Point icone="gift" titre="Des petites attentions" texte="Des idées concrètes pour faire du bien, sans pression." />
-              <Point icone="sparkle" titre="Un assistant bienveillant" texte="Pour trouver les mots quand c'est difficile." />
-              <Point icone="smile" titre="Un espace pour toi" texte="Parce que prendre soin de toi compte aussi." />
+              <Ambiance />
+              <T size={12} lh={20} color={c.faint} center style={{ marginTop: 24 }}>Aurore t'accompagne et ne remplace pas un suivi médical ou psychologique. En cas de détresse, tu trouves des ressources d'urgence dans l'app.</T>
+              <Suivant titre="Commencer" onPress={() => setEtape(4)} />
             </>
           )}
 
           {etape === 4 && (
             <>
-              <EnTete
-                titre={profil === 'proche' ? 'Te lier à ton proche' : 'Inviter un proche'}
-                texte={profil === 'proche' ? 'Entre le code que ton proche t’a donné pour vous envoyer des petits mots.' : 'Si tu veux, un proche peut te rejoindre pour t’envoyer des petits mots. Rien d’autre n’est partagé.'} />
-              {profil === 'proche' ? (
-                <Champ label="Code d'invitation" value={code} onChangeText={(t) => setCode(t.toUpperCase())} placeholder="AURORE-1234" autoCapitalize="characters" maxLength={11} />
-              ) : (
-                <View style={{ backgroundColor: c.soft, borderRadius: 24, padding: 22, alignItems: 'center', gap: 6 }}>
-                  <T size={14} color={c.muted}>Ton code à partager</T>
-                  <T size={28} weight="bold" style={{ letterSpacing: 2 }}>AURORE-4821</T>
-                </View>
-              )}
-              <T size={14} color={c.muted} center>Tu peux aussi le faire plus tard dans les réglages.</T>
+              <Retour onPress={retour} />
+              <View style={{ marginBottom: 32 }}>
+                <H size={30} center>Comment veux-tu qu'on t'appelle ?</H>
+                <T color={c.muted} center style={{ marginTop: 12 }}>Choisis ton surnom pour ton aventure dans Aurore.</T>
+              </View>
+              <Boite>
+                <T size={14} weight="600" color={c.text}>Ton surnom <T size={14} weight="400" color={c.faint}>(optionnel)</T></T>
+                <TextInput value={surnom} onChangeText={setSurnom} maxLength={30} placeholder="Un surnom, comme tu veux qu'on te salue…" placeholderTextColor={c.faint}
+                  accessibilityLabel="Ton surnom" returnKeyType="next" onSubmitEditing={() => setEtape(5)}
+                  style={{ marginTop: 8, height: 44, borderRadius: 12, borderWidth: 1, borderColor: c.ring, paddingHorizontal: 16, fontSize: 14, color: c.ink, backgroundColor: c.surface }} />
+              </Boite>
+              <Suivant titre="Continuer" onPress={() => setEtape(5)} />
             </>
           )}
 
-          {etape === 5 && (
-            <>
-              <View style={{ alignItems: 'center', paddingTop: 10 }}><SoleilEntier size={90} /></View>
-              <EnTete titre="Avant de commencer" texte="Deux choses importantes." />
-              <Point icone="aide" titre="Le bouton « Aide » est toujours là" texte="En haut de chaque écran. Un geste suffit pour trouver quelqu'un à qui parler, à tout moment." />
-              <Point icone="shield" titre="Aurore ne remplace pas un suivi médical" texte="L'app t'accompagne vers l'avenir, aux côtés des professionnels qui te suivent." />
-            </>
+          {etape === fin && profil && etape >= 2 && (
+            <Notifications proche={profil === 'proche'} onBack={retour} onContinue={() => terminer(profil)} />
           )}
         </Animated.View>
-
-        <View style={{ flex: 1 }} />
-        <View style={{ gap: 10, paddingBottom: insets.bottom + 8 }}>
-          <Bouton titre={etape === ETAPES - 1 ? 'Commencer' : 'Continuer'} onPress={suivant} disabled={!peutContinuer} />
-          {etape === 4 && <Bouton variante="doux" titre="Plus tard" onPress={suivant} />}
-        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
-function EnTete({ titre, texte }: { titre: string; texte: string }) {
+function CarteChoix({ Icone, fond, couleur, titre, texte, onPress }: { Icone: LucideIcon; fond: string; couleur: string; titre: string; texte: string; onPress: () => void }) {
   const { c } = useApp();
   return (
-    <View style={{ gap: 8 }}>
-      <Titre size={28}>{titre}</Titre>
-      <T color={c.muted}>{texte}</T>
-    </View>
-  );
-}
-
-function ChoixProfil({ icone, titre, texte, actif, onPress }: { icone: IconName; titre: string; texte: string; actif: boolean; onPress: () => void }) {
-  const { c } = useApp();
-  return (
-    <Pressable accessibilityRole="radio" accessibilityState={{ checked: actif }} onPress={() => { tap(); onPress(); }}
-      style={{ flexDirection: 'row', gap: 14, alignItems: 'center', padding: 20, borderRadius: 26, borderWidth: 2, borderColor: actif ? c.gold : c.line, backgroundColor: actif ? c.soft : c.card }}>
-      <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: c.peach, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={icone} size={24} color={c.link} />
-      </View>
-      <View style={{ flex: 1, gap: 4 }}>
-        <T size={17} weight="semibold">{titre}</T>
-        <T size={14.5} color={c.muted}>{texte}</T>
-      </View>
-      {actif && <Icon name="check" size={22} color={c.link} width={2.4} />}
+    <Pressable accessibilityRole="button" onPress={() => { tap(); onPress(); }}
+      style={({ pressed }) => ({ alignItems: 'center', padding: 32, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring, shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+      <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: fond, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}><Icone size={28} color={couleur} /></View>
+      <H size={20} center>{titre}</H>
+      <T size={14} color={c.muted} center style={{ marginTop: 8 }}>{texte}</T>
     </Pressable>
   );
 }
 
-function Point({ icone, titre, texte }: { icone: IconName; titre: string; texte: string }) {
+function Retour({ onPress }: { onPress: () => void }) {
   const { c } = useApp();
   return (
-    <View style={{ flexDirection: 'row', gap: 14, padding: 18, borderRadius: 24, backgroundColor: c.card }}>
-      <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: c.peach, alignItems: 'center', justifyContent: 'center' }}>
-        <Icon name={icone} size={22} color={c.link} />
+    <Pressable accessibilityRole="button" hitSlop={8} onPress={() => { tap(); onPress(); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', marginBottom: 24 }}>
+      <ArrowLeft size={16} color={c.muted} /><T size={14} color={c.muted}>Retour</T>
+    </Pressable>
+  );
+}
+
+function Boite({ children }: { children: ReactNode }) {
+  const { c } = useApp();
+  return <View style={{ padding: 28, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring, gap: 20 }}>{children}</View>;
+}
+
+const Suivant = ({ titre, onPress }: { titre: string; onPress: () => void }) => (
+  <View style={{ marginTop: 32, alignItems: 'center' }}><BoutonPlein titre={titre} onPress={onPress} /></View>
+);
+
+function Ambiance() {
+  const { c } = useApp();
+  return (
+    <View style={{ marginTop: 24, alignItems: 'center', gap: 12, padding: 20, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring }}>
+      <View style={{ alignItems: 'center' }}>
+        <H size={16}>Choisis ton ambiance</H>
+        <T size={14} color={c.muted} center style={{ marginTop: 4 }}>Tu pourras en changer à tout moment dans les Réglages.</T>
       </View>
-      <View style={{ flex: 1, gap: 4 }}>
-        <T weight="semibold">{titre}</T>
-        <T size={14.5} color={c.muted}>{texte}</T>
-      </View>
+      <ChoixAmbiance />
     </View>
+  );
+}
+
+function Lettre({ proche, onBack, onContinue }: { proche: boolean; onBack: () => void; onContinue: () => void }) {
+  const { c } = useApp();
+  const [ouverte, setOuverte] = useState(false);
+  const paragraphes = proche ? CO_FOUNDERS_LETTER_PARAGRAPHS : FOUNDERS_LETTER_PARAGRAPHS;
+  return (
+    <>
+      <Retour onPress={onBack} />
+      <View style={{ marginBottom: 32 }}><H size={30} center>{proche ? 'Un mot du co-fondateur' : 'Un mot de la co-fondatrice principale'}</H></View>
+      {!ouverte ? (
+        <View style={{ alignItems: 'center', padding: 32, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring }}>
+          <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: proche ? '#F5F3FF' : '#FFFBEB', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 1, borderColor: c.ring }}>
+            <Mail size={28} color={proche ? '#6D28D9' : '#D97706'} />
+          </View>
+          <T size={14} color={c.muted} center>Un petit mot t'attend avant de continuer.</T>
+          <BoutonPlein titre="Ouvrir la lettre" onPress={() => setOuverte(true)} style={{ marginTop: 20, alignSelf: 'stretch' }} />
+          <T size={14} color={c.faint} center style={{ marginTop: 12, paddingVertical: 4 }} onPress={onContinue}>Continuer sans la lire</T>
+        </View>
+      ) : (
+        <Animated.View entering={FadeIn.duration(500)}>
+          <Boite>
+            {paragraphes.map((p, i) => (
+              <T key={i} size={p.emphasis ? 18 : 15} weight={p.emphasis ? '500' : '400'} lh={p.emphasis ? 28 : 32} color={p.emphasis ? c.ink : c.soft}>{p.text}</T>
+            ))}
+          </Boite>
+          {proche && (
+            <>
+              <View style={{ marginTop: 24, flexDirection: 'row', gap: 12, padding: 20, borderRadius: 24, backgroundColor: 'rgba(245,243,255,0.6)', borderWidth: 1, borderColor: '#EDE9FE' }}>
+                <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}><HeartHandshake size={17} color="#6D28D9" /></View>
+                <T size={14} lh={24} color={c.soft} style={{ flex: 1 }}>On n'est pas des professionnels de santé, mais on va t'aider du mieux qu'on peut, à chaque étape. Aurore ne remplace pas un avis médical ou psychologique — si tu as un doute sur une urgence, les ressources et contacts d'urgence sont toujours accessibles dans l'app.</T>
+              </View>
+              <Ambiance />
+            </>
+          )}
+          <Suivant titre="Continuer" onPress={onContinue} />
+        </Animated.View>
+      )}
+    </>
+  );
+}
+
+function Notifications({ proche, onBack, onContinue }: { proche: boolean; onBack: () => void; onContinue: () => void }) {
+  const { c } = useApp();
+  const [active, setActive] = useState(false);
+  return (
+    <>
+      <Retour onPress={onBack} />
+      <View style={{ marginBottom: 32, alignItems: 'center' }}>
+        <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FFFBEB', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 1, borderColor: c.ring }}><Bell size={28} color="#D97706" /></View>
+        <H size={30} center>Active tes notifications</H>
+        <T color={c.muted} center style={{ marginTop: 12 }}>{proche
+          ? "Tu recevras une notification quand la personne que tu accompagnes t'envoie un mot de soutien. C'est le seul moyen de le recevoir en dehors de l'app — pense à accepter."
+          : "Une citation chaque matin pour t'accompagner, et un mot si un proche t'en envoie un. Une seule notification par jour pour la citation, jamais plus — pense à accepter."}</T>
+      </View>
+      <View style={{ padding: 24, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring, alignItems: 'center' }}>
+        {/* shortcut: notifications simulées dans la beta, la vraie demande iOS viendra avec le serveur. */}
+        {active ? <T size={14} weight="600" color="#0F766E">Activées, merci !</T> : <BoutonPlein titre="Activer les notifications" onPress={() => setActive(true)} style={{ alignSelf: 'stretch' }} />}
+      </View>
+      <Suivant titre={active ? 'Continuer' : 'Plus tard'} onPress={onContinue} />
+    </>
   );
 }
