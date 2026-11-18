@@ -10,7 +10,7 @@ import { T, t, tap } from '@/ui';
 // Page de connexion / inscription du site (AuthLayout), avec en plus Apple et Google.
 // Beta : aucun vrai compte, chaque bouton mène à la suite du parcours.
 export function EcranAuth({ mode }: { mode: 'connexion' | 'inscription' }) {
-  const { setConnecte, profil } = useApp();
+  const { ouvrirCompte, existe } = useApp();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   const [mdp, setMdp] = useState('');
@@ -19,11 +19,15 @@ export function EcranAuth({ mode }: { mode: 'connexion' | 'inscription' }) {
   const inscription = mode === 'inscription';
   const Icone = inscription ? UserPlus : LogIn;
 
-  const entrer = () => { setConnecte(true); router.replace(profil ? (`/${profil}` as const) : '/bienvenue'); };
+  // Un compte = un seul profil : s'il existe déjà, on retrouve son côté (patient OU proche), sinon on passe par l'inscription.
+  const entrer = (id: string) => { const p = ouvrirCompte(id); router.replace(p ? (`/${p}` as const) : '/bienvenue'); };
   const valider = () => {
-    if (!email.includes('@') || mdp.length < 6) return setErreur(inscription ? t('auth.registerError') : t('auth.loginError'));
+    const id = email.trim().toLowerCase();
+    if (!id.includes('@') || mdp.length < 6) return setErreur(inscription ? t('auth.registerError') : t('auth.loginError'));
     if (inscription && mdp !== mdp2) return setErreur(t('auth.passwordMismatch'));
-    setErreur(''); entrer();
+    if (inscription && existe(id)) return setErreur('Un compte existe déjà avec cet email. Connecte-toi.');
+    if (!inscription && !existe(id)) return setErreur("Aucun compte avec cet email. Crée-en un.");
+    setErreur(''); entrer(id);
   };
 
   return (
@@ -38,8 +42,8 @@ export function EcranAuth({ mode }: { mode: 'connexion' | 'inscription' }) {
         </View>
 
         <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, borderWidth: 1, borderColor: '#E5E5E5', padding: 24, gap: 16, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } }}>
-          <BoutonSocial titre="Continuer avec Apple" noir onPress={entrer} logo={<LogoApple />} />
-          <BoutonSocial titre="Continuer avec Google" onPress={entrer} logo={<LogoGoogle />} />
+          <BoutonSocial titre="Continuer avec Apple" noir onPress={() => entrer('apple')} logo={<LogoApple />} />
+          <BoutonSocial titre="Continuer avec Google" onPress={() => entrer('google')} logo={<LogoGoogle />} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <View style={{ flex: 1, height: 1, backgroundColor: '#E5E5E5' }} />
             <T size={13} color="#737373">{t('auth.or')}</T>

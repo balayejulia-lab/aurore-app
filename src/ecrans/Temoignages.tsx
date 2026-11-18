@@ -32,7 +32,7 @@ export function Temoignages({ liste, proche }: { liste: Temoignage[]; proche?: b
   const [eclat, setEclat] = useState<string | null>(null);
   const dernierTap = useRef<{ id: string; t: number } | null>(null);
   const items = liste.filter((x) => !requete || `${x.title} ${x.text}`.toLowerCase().includes(requete.toLowerCase()));
-  const favori = (x: Temoignage) => ({ id: `temoignage-${x.id}`, type: 'Témoignage', texte: x.title, auteur: x.name });
+  const favori = (x: Temoignage) => ({ id: `temoignage-${x.id}`, type: 'Témoignage', texte: x.title, auteur: x.name, resume: x.text, lien: x.link });
   const toucher = (x: Temoignage) => {
     const now = Date.now();
     if (dernierTap.current?.id === x.id && now - dernierTap.current.t < 300) {
@@ -59,10 +59,10 @@ export function Temoignages({ liste, proche }: { liste: Temoignage[]; proche?: b
               <Fond />
               {!x ? <T size={16} weight="500" lh={32} color="#334155" center>{FIN}</T> : (
                 <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
-                  {!proche && x.name && (
+                  {x.name && (
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
                       <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.1)', alignItems: 'center', justifyContent: 'center' }}><T size={14} weight="600">{x.name.charAt(0).toUpperCase()}</T></View>
-                      <T size={14} weight="600">{x.name}{x.age ? <T size={14} weight="400" color="#64748B">  · {x.age}</T> : null}</T>
+                      <T size={14} weight="600">{x.name}</T>
                     </View>
                   )}
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.1)', marginBottom: 16 }}>
@@ -74,12 +74,10 @@ export function Temoignages({ liste, proche }: { liste: Temoignage[]; proche?: b
                     <T size={24} weight="700" lh={32} style={{ flex: 1 }}>{x.title}</T>
                   </View>
                   <T size={15} lh={28} color="#334155" style={{ alignSelf: 'stretch' }}>{x.text}</T>
-                  {x.context && <T size={12} upper color="#64748B" style={{ marginTop: 12, letterSpacing: 1.8 }}>{x.context}</T>}
-                  {x.link && (
-                    <Pressable onPress={() => Linking.openURL(x.link!)} style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.1)' }}>
-                      <ExternalLink size={13} color="#1E293B" /><T size={12} weight="600">{x.type === 'podcast' ? 'Écouter sur Spotify' : 'Source originale (non reformulée)'}</T>
-                    </Pressable>
-                  )}
+                  <T size={12} upper color="#64748B" center style={{ marginTop: 12, letterSpacing: 1.8 }}>Résumé · {x.source}</T>
+                  <Pressable onPress={() => Linking.openURL(x.link)} style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.1)' }}>
+                    <ExternalLink size={13} color="#1E293B" /><T size={12} weight="600">{x.type === 'podcast' ? 'Écouter le podcast' : 'Lire le témoignage complet'}</T>
+                  </Pressable>
                 </View>
               )}
               {x && eclat === x.id && (

@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Bell, Check, ChevronDown, ChevronRight, Globe, LogOut, Settings, Users } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, Switch, TextInput, View } from 'react-native';
+import { Alert, Platform, Pressable, Switch, TextInput, View } from 'react-native';
 import { CO_FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/coFoundersLetter';
 import { FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/foundersLetter';
 import { EcranUrgence } from '@/ecrans/Urgence';
@@ -17,9 +17,11 @@ export default function Reglages() {
   const [lettre, setLettre] = useState(false);
   const paragraphes = proche ? CO_FOUNDERS_LETTER_PARAGRAPHS : FOUNDERS_LETTER_PARAGRAPHS;
 
-  const deconnexion = () => Alert.alert('Te déconnecter ?', 'Tu pourras te reconnecter à tout moment avec ton compte.', [
+  const sortir = () => { app.deconnecter(); router.replace('/connexion'); };
+  // Alert à plusieurs boutons n'existe pas dans l'aperçu navigateur : simple confirmation à la place.
+  const deconnexion = () => Platform.OS === 'web' ? (window.confirm('Te déconnecter ?') && sortir()) : Alert.alert('Te déconnecter ?', 'Tu pourras te reconnecter à tout moment avec ton compte.', [
     { text: 'Rester connecté·e', style: 'cancel' },
-    { text: 'Me déconnecter', style: 'destructive', onPress: () => { app.deconnecter(); router.replace('/connexion'); } },
+    { text: 'Me déconnecter', style: 'destructive', onPress: sortir },
   ]);
 
   return (

@@ -46,6 +46,7 @@ export function Favoris({ proche }: { proche?: boolean }) {
                     {k === 'Réponse' && <T size={12} weight="700" upper color={c.av600} style={{ letterSpacing: 2, marginBottom: 4 }}>Ta question</T>}
                     <H size={16} style={{ paddingRight: 24 }}>{f.texte}</H>
                     {f.resume && <T size={14} lh={24} color={c.soft} style={{ marginTop: 8 }}>{f.resume}</T>}
+                    {f.lien && <Pressable onPress={() => Linking.openURL(f.lien!)} style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }}><ExternalLink size={12} color={c.rose700} /><T size={12} weight="600" color={c.rose700}>Lire le témoignage</T></Pressable>}
                   </CarteFav>
                 ))}
               </View>
@@ -91,6 +92,8 @@ export function Favoris({ proche }: { proche?: boolean }) {
                     <>
                       {f.auteur && <T size={12} weight="700" upper color={c.rose600} style={{ letterSpacing: 2, marginBottom: 4 }}>{f.auteur}</T>}
                       <H size={16} style={{ paddingRight: 24 }}>{f.texte}</H>
+                      {f.resume && <T size={14} lh={24} color={c.soft} lines={3} style={{ marginTop: 8 }}>{f.resume}</T>}
+                      {f.lien && <Pressable onPress={() => Linking.openURL(f.lien!)} style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }}><ExternalLink size={12} color={c.rose700} /><T size={12} weight="600" color={c.rose700}>Lire le témoignage</T></Pressable>}
                     </>
                   ) : (
                     <>

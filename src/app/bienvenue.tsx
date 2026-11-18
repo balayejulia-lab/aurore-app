@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { ArrowLeft, Bell, Compass, Heart, HeartHandshake, LifeBuoy, Mail, Sparkles, Target, Users, type LucideIcon } from 'lucide-react-native';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,11 +25,12 @@ export default function Bienvenue() {
   const [etape, setEtape] = useState(0);
   const [profil, setProfil] = useState<Profil | null>(null);
   const [surnom, setSurnom] = useState('');
+  // Un compte qui a déjà choisi son côté ne repasse jamais par ce choix.
+  useEffect(() => { if (app.profil) router.replace(`/${app.profil}`); }, [app.profil]);
 
   const terminer = (p: Profil) => {
-    app.setProfil(p);
+    app.choisirProfil(p);
     if (p === 'patient') app.setSurnom(surnom.trim());
-    app.setPartenaire(null);
     router.replace(`/${p}`);
   };
   const choisir = (p: Profil) => { setProfil(p); setEtape(1); };
