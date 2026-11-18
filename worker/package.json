@@ -1,0 +1,21 @@
+{
+  "name": "aurore-assistant",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "check": "tsc",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.10.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261118.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.165.0"
+  },
+  "private": true
+}

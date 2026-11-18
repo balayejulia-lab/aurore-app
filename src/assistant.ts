@@ -1,5 +1,4 @@
-// Assistant SIMULÉ pour la beta (aucune IA réelle, aucune donnée envoyée).
-// Plus tard : IA Apple sur l'iPhone, sinon Cloudflare (gratuit), sinon ces réponses pré-écrites.
+// Assistant des proches : vraie IA via notre serveur (worker/), sinon réponses pré-écrites hors ligne.
 
 const DETRESSE = /suicid|mourir|en finir|me tuer|se tuer|plus envie de vivre|disparaître|danger/i;
 const CHIFFRES_CORPS = /poids|kilo|\bkg\b|calorie|imc|maigr|grossi|mensuration|combien.*mang/i;
@@ -24,11 +23,41 @@ const REPONSES: [RegExp, string][] = [
   [/repas|table|manger|nourriture/i, "Les moments de repas peuvent être sensibles. Le mieux est de suivre les conseils de l'équipe soignante et de garder une ambiance douce, avec des sujets de conversation légers et agréables."],
 ];
 
-export function repondre(question: string): string {
+const PRECISER = "Pour t'aider au plus juste, dis-m'en un peu plus : qui accompagnes-tu, et où en êtes-vous en ce moment (pas encore de suivi, soins en cours, période plus difficile) ?";
+
+// Hors ligne : réponses pré-écrites, sans jamais redonner une réponse déjà donnée.
+export function repondre(question: string, dejaDit: string[] = []): string {
   if (DETRESSE.test(question)) return REPONSE_DETRESSE;
   if (CHIFFRES_CORPS.test(question)) return REPONSE_CORPS;
-  return REPONSES.find(([re]) => re.test(question))?.[1]
-    ?? "Merci de me poser la question. Ce qui aide souvent : être présent·e sans pression, valoriser chaque petit pas, et parler de ce qui fait envie pour la suite. Tu veux qu'on cherche ensemble des mots pour lui en parler ?";
+  const neuves = REPONSES.filter(([re, r]) => re.test(question) && !dejaDit.includes(r));
+  return neuves[0]?.[1] ?? (dejaDit.includes(PRECISER) ? "Je t'entends. Ce que tu vis compte, et tu n'as pas à trouver toutes les réponses seul·e : la ligne Anorexie Boulimie Info Écoute (09 69 325 900) écoute aussi les proches, et le médecin traitant peut vous orienter." : PRECISER);
+}
+
+// Filet de sécurité sur la réponse de l'IA : jamais de chiffres sur le corps ou l'alimentation,
+// et les numéros d'urgence toujours présents si la question parle de danger.
+const CHIFFRE_CORPS_REPONSE = /\d+([.,]\d+)?\s*(kg|kilos?|calories?|kcal|grammes?|g\b)|imc\s*(de|à|:)?\s*\d/i;
+export function securiser(question: string, reponse: string): string {
+  if (CHIFFRE_CORPS_REPONSE.test(reponse)) return REPONSE_CORPS;
+  if (DETRESSE.test(question) && !reponse.includes('3114')) return `${REPONSE_DETRESSE}\n\n${reponse}`;
+  return reponse;
+}
+
+type Message = { role: 'user' | 'assistant'; content: string };
+// shortcut: jeton partagé visible dans l'app ; remplacer par l'auth des comptes (Supabase) au lancement.
+const URL_IA = process.env.EXPO_PUBLIC_ASSISTANT_URL;
+const JETON = process.env.EXPO_PUBLIC_ASSISTANT_TOKEN ?? '';
+
+export async function demander(historique: Message[]): Promise<string> {
+  const question = historique[historique.length - 1].content;
+  const dejaDit = historique.filter((m) => m.role === 'assistant').map((m) => m.content);
+  if (URL_IA) {
+    try {
+      const r = await fetch(URL_IA, { method: 'POST', headers: { 'content-type': 'application/json', 'x-aurore-token': JETON }, body: JSON.stringify({ messages: historique }) });
+      const { texte } = (await r.json()) as { texte?: string };
+      if (r.ok && texte) return securiser(question, texte);
+    } catch {}
+  }
+  return repondre(question, dejaDit);
 }
 
 // Outil « Traduire ce que je ressens » (simulé) : reformule en « je », sans accuser.

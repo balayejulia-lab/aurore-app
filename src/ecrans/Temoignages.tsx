@@ -3,7 +3,6 @@ import { useRef, useState } from 'react';
 import { FlatList, Linking, Pressable, TextInput, View } from 'react-native';
 import Animated, { FadeOut, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
 import type { Temoignage } from '@/contenu/temoignages';
 import { useApp } from '@/store';
@@ -11,13 +10,9 @@ import { BoutonAide, T, tap } from '@/ui';
 
 const FIN = 'Nous recherchons des témoignages à te proposer, reviens plus tard.';
 
+// Fond jaune uni (le dégradé faisait des bandes visibles d'une carte à l'autre).
 function Fond() {
-  return (
-    <Svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} preserveAspectRatio="none">
-      <Defs><LinearGradient id="g" x1="0" y1="0" x2="1" y2="1"><Stop offset="0" stopColor="#fbe8a0" /><Stop offset="0.5" stopColor="#f8de7f" /><Stop offset="1" stopColor="#f3d364" /></LinearGradient></Defs>
-      <Rect width="100%" height="100%" fill="url(#g)" />
-    </Svg>
-  );
+  return <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#F8DE7E' }} />;
 }
 
 // Fil vertical plein écran du site : une carte par témoignage, double-tap ou ♥ pour garder.

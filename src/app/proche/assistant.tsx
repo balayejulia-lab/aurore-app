@@ -4,11 +4,11 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
-import { repondre } from '@/assistant';
+import { demander } from '@/assistant';
 import { nid, useApp } from '@/store';
 import { BoutonAide, confirmer, H, T, tap } from '@/ui';
 
-// Assistant des proches du site. Beta : réponses pré-écrites (plus tard IA Apple, sinon Cloudflare gratuit).
+// Assistant des proches du site : vraie IA via worker/, réponses pré-écrites si hors ligne.
 const SUGGESTIONS = [
   "Que dire, et ne pas dire, à mon enfant aujourd'hui ?",
   "Comment se sent cette personne mentalement, même quand le moral s'améliore ?",
@@ -56,7 +56,8 @@ export default function Assistant() {
     const ajout = (m: Msg) => setConvs((l) => (l.some((x) => x.id === id) ? l.map((x) => (x.id === id ? { ...x, messages: [...x.messages, m] } : x)) : [{ id, messages: [m], date: Date.now() }, ...l]));
     ajout({ role: 'user', content: texte, id: nid() });
     setCourante(id);
-    setTimeout(() => { ajout({ role: 'assistant', content: repondre(texte), id: nid() }); setEcrit(false); }, 1100);
+    const historique = [...(convs.find((x) => x.id === id)?.messages ?? []), { role: 'user' as const, content: texte }].map(({ role, content }) => ({ role, content }));
+    demander(historique).then((r) => { ajout({ role: 'assistant', content: r, id: nid() }); setEcrit(false); });
   };
 
   const barre = (centre?: boolean) => (
