@@ -23,7 +23,7 @@ type Donnees = {
   profil: Profil | null; surnom: string; partenaire: string | null; photos: string[]; fondHero: string;
   pages: Page[]; pin: string | null; verrouille: boolean; raisons: Raison[]; victoires: Victoire[];
   favoris: Favori[]; evenements: Evenement[]; contacts: Contact[]; motDoux: string; rappels: boolean;
-  objectifs: Objectif[]; envies: Envie[]; scene: string | null;
+  objectifs: Objectif[]; envies: Envie[]; scene: string | null; assistantUtilise?: boolean;
 };
 const VIDE: Donnees = {
   profil: null, surnom: '', partenaire: null, photos: [], fondHero: '#eef4f0', pages: [], pin: null, verrouille: false,
@@ -89,6 +89,7 @@ function useAppState() {
     supprimerContact: (id: string) => liste('contacts', (l) => l.filter((x) => x.id !== id)),
     motDoux: d.motDoux, setMotDoux: champ('motDoux'),
     objectifs: d.objectifs, scene: d.scene, setScene: champ('scene'),
+    assistantUtilise: !!d.assistantUtilise, setAssistantUtilise: champ('assistantUtilise'),
     ajouterObjectif: (title: string) => liste('objectifs', (l) => [{ id: nid(), title, completed: false, steps: [] }, ...l]),
     basculerObjectif: (id: string) => majObjectif(id, (o) => ({ ...o, completed: !o.completed })),
     renommerObjectif: (id: string, title: string) => majObjectif(id, (o) => ({ ...o, title })),

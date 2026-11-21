@@ -1,4 +1,4 @@
-import { Brain, ChevronDown, ChevronUp, Heart, History, Send, Sparkles, SquarePen, Trash2, X } from 'lucide-react-native';
+import { Brain, Lightbulb, ChevronDown, ChevronUp, Heart, History, Send, Sparkles, SquarePen, Trash2, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput, View, type ScrollViewInstance } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
@@ -43,6 +43,8 @@ export default function Assistant() {
   const [ecrit, setEcrit] = useState(false);
   const [memoire, setMemoire] = useState(false);
   const [historique, setHistorique] = useState(false);
+  const [idees, setIdees] = useState(false);
+  const premiere = !app.assistantUtilise;
   const scroll = useRef<ScrollViewInstance>(null);
   const conv = convs.find((x) => x.id === courante);
   const messages = conv?.messages ?? [];
@@ -51,7 +53,8 @@ export default function Assistant() {
   const poser = (q?: string) => {
     const texte = (q ?? question).trim();
     if (!texte || ecrit) return;
-    tap(); setQuestion(''); setEcrit(true);
+    tap(); setQuestion(''); setEcrit(true); setIdees(false);
+    if (premiere) app.setAssistantUtilise(true);
     const id = courante ?? nid();
     const ajout = (m: Msg) => setConvs((l) => (l.some((x) => x.id === id) ? l.map((x) => (x.id === id ? { ...x, messages: [...x.messages, m] } : x)) : [{ id, messages: [m], date: Date.now() }, ...l]));
     ajout({ role: 'user', content: texte, id: nid() });
@@ -108,13 +111,23 @@ export default function Assistant() {
             </View>
             <View style={{ alignSelf: 'stretch' }}>
               {barre(true)}
-              <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-                {SUGGESTIONS.map((s) => (
-                  <Pressable key={s} onPress={() => poser(s)} style={{ maxWidth: '100%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: c.av50 }}>
-                    <T size={12} weight="500" color={c.av700} center style={{ flexShrink: 1 }}>{s}</T>
-                  </Pressable>
-                ))}
-              </View>
+              {/* Questions proposées d'office la 1re fois seulement, ensuite sur demande. */}
+              {premiere || idees ? (
+                <Animated.View entering={FadeIn} style={{ marginTop: 16, gap: 10 }}>
+                  {premiere && <T size={13} weight="600" color={c.soft} center>Tu ne sais pas par où commencer ? En voici quelques-unes :</T>}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+                    {SUGGESTIONS.map((s) => (
+                      <Pressable key={s} onPress={() => poser(s)} style={{ maxWidth: '100%', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: c.av50 }}>
+                        <T size={12} weight="500" color={c.av700} center style={{ flexShrink: 1 }}>{s}</T>
+                      </Pressable>
+                    ))}
+                  </View>
+                </Animated.View>
+              ) : (
+                <Pressable accessibilityRole="button" onPress={() => { tap(); setIdees(true); }} style={{ marginTop: 16, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, backgroundColor: c.av50 }}>
+                  <Lightbulb size={15} color={c.av700} /><T size={13} weight="600" color={c.av700}>Des idées de questions</T>
+                </Pressable>
+              )}
             </View>
             <T size={11} lh={16} color={c.faint} center style={{ marginTop: 24 }}>{AVERTISSEMENT}</T>
           </ScrollView>
