@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
 import { clair, sombre } from './theme';
 
@@ -15,6 +16,8 @@ export type Etape = { text: string; done: boolean };
 export type Objectif = { id: string; title: string; completed: boolean; steps: Etape[] };
 export type Envie = { id: string; question: string; answer: string; category: string; transformed: boolean };
 
+export type Message = { role: 'user' | 'assistant'; content: string; id: string };
+export type Conversation = { id: string; messages: Message[]; date: number };
 export const nid = () => Math.random().toString(36).slice(2, 9);
 
 // Tout ce qui appartient à UN compte. Le profil est choisi une seule fois et ne change jamais :
@@ -23,8 +26,9 @@ type Donnees = {
   profil: Profil | null; surnom: string; partenaire: string | null; photos: string[]; fondHero: string;
   pages: Page[]; pin: string | null; verrouille: boolean; raisons: Raison[]; victoires: Victoire[];
   favoris: Favori[]; evenements: Evenement[]; contacts: Contact[]; motDoux: string; rappels: boolean;
-  objectifs: Objectif[]; envies: Envie[]; scene: string | null; assistantUtilise?: boolean;
+  objectifs: Objectif[]; envies: Envie[]; scene: string | null; assistantUtilise?: boolean; conversations?: Conversation[];
 };
+const CLE = 'aurore-donnees-v1';
 const VIDE: Donnees = {
   profil: null, surnom: '', partenaire: null, photos: [], fondHero: '#eef4f0', pages: [], pin: null, verrouille: false,
   raisons: [], victoires: [], favoris: [], evenements: [], contacts: [], motDoux: '', rappels: true, objectifs: [], envies: [], scene: null,
@@ -37,6 +41,16 @@ function useAppState() {
   const [compte, setCompte] = useState<string | null>(null);
   const [comptes, setComptes] = useState<Record<string, Donnees>>({});
   const d = (compte && comptes[compte]) || VIDE;
+  const [pret, setPret] = useState(false);
+
+  // Sauvegarde sur le téléphone : les comptes et leurs données survivent à la fermeture de l'app.
+  // shortcut: stockage local non chiffré, suffisant pour la beta ; passer au chiffré + Supabase au lancement.
+  useEffect(() => {
+    AsyncStorage.getItem(CLE).then((brut) => {
+      if (brut) { try { const v = JSON.parse(brut); setComptes(v.comptes ?? {}); setCompte(v.compte ?? null); setAmbiance(v.ambiance ?? 'system'); } catch {} }
+    }).finally(() => setPret(true));
+  }, []);
+  useEffect(() => { if (pret) AsyncStorage.setItem(CLE, JSON.stringify({ comptes, compte, ambiance })).catch(() => {}); }, [pret, comptes, compte, ambiance]);
 
   const maj = (f: (x: Donnees) => Donnees) => { if (compte) setComptes((m) => ({ ...m, [compte]: f(m[compte] ?? VIDE) })); };
   const champ = <K extends keyof Donnees>(k: K) => (v: Maj<Donnees[K]>) =>
@@ -48,7 +62,7 @@ function useAppState() {
   const c = nuit ? sombre : clair;
 
   return {
-    c, nuit, ambiance, setAmbiance,
+    pret, c, nuit, ambiance, setAmbiance,
     connecte: !!compte,
     existe: (id: string) => !!comptes[id],
     /** Ouvre (ou crée) le compte et renvoie son profil, s'il en a déjà un. */
@@ -90,6 +104,7 @@ function useAppState() {
     motDoux: d.motDoux, setMotDoux: champ('motDoux'),
     objectifs: d.objectifs, scene: d.scene, setScene: champ('scene'),
     assistantUtilise: !!d.assistantUtilise, setAssistantUtilise: champ('assistantUtilise'),
+    conversations: d.conversations ?? [], setConversations: (f: (l: Conversation[]) => Conversation[]) => maj((x) => ({ ...x, conversations: f(x.conversations ?? []) })),
     ajouterObjectif: (title: string) => liste('objectifs', (l) => [{ id: nid(), title, completed: false, steps: [] }, ...l]),
     basculerObjectif: (id: string) => majObjectif(id, (o) => ({ ...o, completed: !o.completed })),
     renommerObjectif: (id: string, title: string) => majObjectif(id, (o) => ({ ...o, title })),
@@ -111,7 +126,8 @@ const Ctx = createContext<App | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const state = useAppState();
-  return <Ctx.Provider value={state}>{children}</Ctx.Provider>;
+  // Rien n'est affiché avant la lecture des données, pour ne jamais router sur un état vide.
+  return <Ctx.Provider value={state}>{state.pret ? children : null}</Ctx.Provider>;
 }
 
 export function useApp() {

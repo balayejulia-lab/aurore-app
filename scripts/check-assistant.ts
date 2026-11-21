@@ -1,6 +1,6 @@
 // Vérifie les garde-fous de l'assistant simulé : `node scripts/check-assistant.ts`
 import assert from 'node:assert';
-import { repondre, REPONSE_DETRESSE, securiser, traduireEnJe } from '../src/assistant.ts';
+import { repondre, REPONSE_DETRESSE, securiser, souvenirs, traduireEnJe } from '../src/assistant.ts';
 
 assert.equal(repondre("Elle m'a dit qu'elle voulait en finir"), REPONSE_DETRESSE);
 assert.match(repondre('Combien de kilos elle devrait prendre ?'), /équipe médicale/);
@@ -16,4 +16,12 @@ assert.notEqual(repondre('bonjour', [r2]), r2);
 assert.match(securiser('Que faire ce soir ?', 'Vise 2000 kcal par jour.'), /équipe médicale/);
 assert.match(securiser('Il parle de se tuer', 'Reste près de lui.'), /3114/);
 assert.equal(securiser('Que dire ?', 'Dis-lui que tu es là.'), 'Dis-lui que tu es là.');
+const convs = [
+  { id: 'a', date: 1, messages: [{ role: 'user' as const, content: 'Ma fille de 15 ans refuse de voir un médecin' }, { role: 'assistant' as const, content: 'réponse' }] },
+  { id: 'b', date: 2, messages: [{ role: 'user' as const, content: 'Elle a commencé un suivi' }] },
+  { id: 'c', date: 3, messages: [{ role: 'user' as const, content: 'question en cours' }] },
+];
+const m = souvenirs(convs, 'c');
+assert.ok(m.indexOf('suivi') < m.indexOf('15 ans') && !m.includes('en cours') && !m.includes('réponse'));
+assert.ok(souvenirs(convs, null, 60).length <= 60);
 console.log('assistant OK');

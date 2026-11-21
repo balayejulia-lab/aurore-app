@@ -4,8 +4,8 @@ import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, TextInput
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBottomTabBarHeight } from 'expo-router/js-tabs';
-import { demander } from '@/assistant';
-import { nid, useApp } from '@/store';
+import { demander, souvenirs } from '@/assistant';
+import { nid, useApp, type Message as Msg } from '@/store';
 import { BoutonAide, confirmer, H, T, tap } from '@/ui';
 
 // Assistant des proches du site : vraie IA via worker/, réponses pré-écrites si hors ligne.
@@ -17,8 +17,6 @@ const SUGGESTIONS = [
   'Comment prendre soin de moi en tant que proche ?',
   "Où trouver de l'aide professionnelle pour cette personne et pour nous ?",
 ];
-type Msg = { role: 'user' | 'assistant'; content: string; id: string };
-type Conv = { id: string; messages: Msg[]; date: number };
 const AVERTISSEMENT = "Cet assistant est informatif et ne remplace pas un avis médical. En cas d'urgence, appelle le 15 (ou le 3114, ligne Nationale de prévention du suicide).";
 
 // Rend le **gras** des réponses comme sur le site.
@@ -37,7 +35,7 @@ export default function Assistant() {
   const { c } = app;
   const insets = useSafeAreaInsets();
   const bas = useBottomTabBarHeight();
-  const [convs, setConvs] = useState<Conv[]>([]);
+  const { conversations: convs, setConversations: setConvs } = app;
   const [courante, setCourante] = useState<string | null>(null);
   const [question, setQuestion] = useState('');
   const [ecrit, setEcrit] = useState(false);
@@ -60,7 +58,7 @@ export default function Assistant() {
     ajout({ role: 'user', content: texte, id: nid() });
     setCourante(id);
     const historique = [...(convs.find((x) => x.id === id)?.messages ?? []), { role: 'user' as const, content: texte }].map(({ role, content }) => ({ role, content }));
-    demander(historique).then((r) => { ajout({ role: 'assistant', content: r, id: nid() }); setEcrit(false); });
+    demander(historique, souvenirs(convs, id)).then((r) => { ajout({ role: 'assistant', content: r, id: nid() }); setEcrit(false); });
   };
 
   const barre = (centre?: boolean) => (
@@ -92,7 +90,7 @@ export default function Assistant() {
           </Pressable>
           {memoire && (
             <Animated.View entering={FadeIn} style={{ alignSelf: 'stretch', marginTop: 8, borderRadius: 16, backgroundColor: c.av50, padding: 16, borderWidth: 1, borderColor: c.av100 }}>
-              <T size={14} lh={24} color={c.soft}>Tu m'as parlé de : {messages.filter((m) => m.role === 'user').map((m) => m.content).join(' · ')}</T>
+              <T size={14} lh={24} color={c.soft}>Il se souvient de {convs.length > 1 ? `tes ${convs.length} conversations` : 'cette conversation'}, pour mieux comprendre ta situation. Ici, tu m'as parlé de : {messages.filter((m) => m.role === 'user').map((m) => m.content).join(' · ')}</T>
               <Pressable onPress={() => confirmer('Oublier cette conversation ?', "L'assistant ne s'en souviendra plus.", 'La garder', () => { setConvs((l) => l.filter((x) => x.id !== courante)); setCourante(null); setMemoire(false); })} style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Trash2 size={13} color="#E11D48" /><T size={12} weight="600" color="#E11D48">Oublier cette conversation</T>
               </Pressable>
@@ -185,6 +183,11 @@ export default function Assistant() {
                 );
               })}
             </ScrollView>
+            {convs.length > 0 && (
+              <Pressable onPress={() => confirmer('Tout oublier ?', "L'assistant oubliera toutes vos conversations et ce que tu lui as confié.", 'Annuler', () => { setConvs(() => []); setCourante(null); setHistorique(false); })} style={{ margin: 16, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Trash2 size={13} color="#E11D48" /><T size={12} weight="600" color="#E11D48">Tout oublier</T>
+              </Pressable>
+            )}
           </Pressable>
         </Pressable>
       </Modal>

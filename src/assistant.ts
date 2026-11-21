@@ -47,12 +47,26 @@ type Message = { role: 'user' | 'assistant'; content: string };
 const URL_IA = process.env.EXPO_PUBLIC_ASSISTANT_URL;
 const JETON = process.env.EXPO_PUBLIC_ASSISTANT_TOKEN ?? '';
 
-export async function demander(historique: Message[]): Promise<string> {
+// Mémoire entre conversations : ce que le proche a confié dans ses autres échanges, du plus récent au plus ancien.
+// Seuls ses propres messages sont gardés (c'est sa situation qui compte), bornés pour rester léger.
+export function souvenirs(convs: { id: string; date: number; messages: Message[] }[], sauf: string | null, max = 4000): string {
+  let texte = '';
+  for (const c of [...convs].sort((a, b) => b.date - a.date)) {
+    if (c.id === sauf) continue;
+    const dits = c.messages.filter((m) => m.role === 'user').map((m) => m.content.trim()).join(' / ');
+    const ligne = `- ${new Date(c.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} : ${dits}\n`;
+    if (texte.length + ligne.length > max) break;
+    texte += ligne;
+  }
+  return texte.trim();
+}
+
+export async function demander(historique: Message[], memoire = ''): Promise<string> {
   const question = historique[historique.length - 1].content;
   const dejaDit = historique.filter((m) => m.role === 'assistant').map((m) => m.content);
   if (URL_IA) {
     try {
-      const r = await fetch(URL_IA, { method: 'POST', headers: { 'content-type': 'application/json', 'x-aurore-token': JETON }, body: JSON.stringify({ messages: historique }) });
+      const r = await fetch(URL_IA, { method: 'POST', headers: { 'content-type': 'application/json', 'x-aurore-token': JETON }, body: JSON.stringify({ messages: historique, memoire }) });
       const { texte } = (await r.json()) as { texte?: string };
       if (r.ok && texte) return securiser(question, texte);
     } catch {}
