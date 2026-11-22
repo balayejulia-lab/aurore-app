@@ -6,6 +6,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CO_FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/coFoundersLetter';
 import { FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/foundersLetter';
+import { autoriser } from '@/notifications';
 import { useApp, type Profil } from '@/store';
 import { BoutonPlein, ChoixAmbiance, H, T, tap } from '@/ui';
 
@@ -30,13 +31,14 @@ export default function Bienvenue() {
 
   const terminer = (p: Profil) => {
     app.choisirProfil(p);
-    if (p === 'patient') app.setSurnom(surnom.trim());
+    app.setSurnom(surnom.trim());
     router.replace(`/${p}`);
   };
   const choisir = (p: Profil) => { setProfil(p); setEtape(1); };
   const retour = () => setEtape((e) => e - 1);
-  // Patient : 1 lettre, 2 rappel, 3 bienvenue, 4 surnom, 5 notifications. Proche : 1 lettre, 2 notifications.
-  const fin = profil === 'proche' ? 2 : 5;
+  // Patient : 1 lettre, 2 rappel, 3 bienvenue, 4 surnom, 5 notifications. Proche : 1 lettre, 2 prénom, 3 notifications.
+  const etapeNom = profil === 'proche' ? 2 : 4;
+  const fin = etapeNom + 1;
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: c.bg }}>
@@ -100,24 +102,24 @@ export default function Bienvenue() {
             </>
           )}
 
-          {etape === 4 && (
+          {etape === etapeNom && profil && (
             <>
               <Retour onPress={retour} />
               <View style={{ marginBottom: 32 }}>
                 <H size={30} center>Comment veux-tu qu'on t'appelle ?</H>
-                <T color={c.muted} center style={{ marginTop: 12 }}>Choisis ton surnom pour ton aventure dans Aurore.</T>
+                <T color={c.muted} center style={{ marginTop: 12 }}>{profil === 'proche' ? "Ton prénom ou un surnom, c'est toi qui choisis." : 'Choisis ton surnom pour ton aventure dans Aurore.'}</T>
               </View>
               <Boite>
-                <T size={14} weight="600" color={c.text}>Ton surnom <T size={14} weight="400" color={c.faint}>(optionnel)</T></T>
+                <T size={14} weight="600" color={c.text}>{profil === 'proche' ? 'Ton prénom' : 'Ton surnom'} <T size={14} weight="400" color={c.faint}>(optionnel)</T></T>
                 <TextInput value={surnom} onChangeText={setSurnom} maxLength={30} placeholder="Un surnom, comme tu veux qu'on te salue…" placeholderTextColor={c.faint}
-                  accessibilityLabel="Ton surnom" returnKeyType="next" onSubmitEditing={() => setEtape(5)}
+                  accessibilityLabel="Ton surnom" returnKeyType="next" onSubmitEditing={() => setEtape(fin)}
                   style={{ marginTop: 8, height: 44, borderRadius: 12, borderWidth: 1, borderColor: c.ring, paddingHorizontal: 16, fontSize: 14, color: c.ink, backgroundColor: c.surface }} />
               </Boite>
-              <Suivant titre="Continuer" onPress={() => setEtape(5)} />
+              <Suivant titre="Continuer" onPress={() => setEtape(fin)} />
             </>
           )}
 
-          {etape === fin && profil && etape >= 2 && (
+          {etape === fin && profil && (
             <Notifications proche={profil === 'proche'} onBack={retour} onContinue={() => terminer(profil)} />
           )}
         </Animated.View>
@@ -223,8 +225,8 @@ function Notifications({ proche, onBack, onContinue }: { proche: boolean; onBack
           : "Une citation chaque matin pour t'accompagner, et un mot si un proche t'en envoie un. Une seule notification par jour pour la citation, jamais plus — pense à accepter."}</T>
       </View>
       <View style={{ padding: 24, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring, alignItems: 'center' }}>
-        {/* shortcut: notifications simulées dans la beta, la vraie demande iOS viendra avec le serveur. */}
-        {active ? <T size={14} weight="600" color="#0F766E">Activées, merci !</T> : <BoutonPlein titre="Activer les notifications" onPress={() => setActive(true)} style={{ alignSelf: 'stretch' }} />}
+        {/* Vraie demande d'autorisation iOS ; le contenu quotidien est programmé ailleurs. */}
+        {active ? <T size={14} weight="600" color="#0F766E">Activées, merci !</T> : <BoutonPlein titre="Activer les notifications" onPress={() => autoriser().then(setActive)} style={{ alignSelf: 'stretch' }} />}
       </View>
       <Suivant titre={active ? 'Continuer' : 'Plus tard'} onPress={onContinue} />
     </>

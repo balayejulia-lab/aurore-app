@@ -7,6 +7,13 @@ export * from './rappels';
 
 const QUAND: Record<number, string> = { 0: "C'est maintenant", 5: 'Dans 5 minutes', 15: 'Dans 15 minutes', 30: 'Dans 30 minutes', 60: 'Dans 1 heure', 1440: 'Demain' };
 
+/** Demande l'autorisation iOS (une seule fois : ensuite iOS répond sans redemander). */
+export async function autoriser(): Promise<boolean> {
+  if (Platform.OS === 'web') return true;
+  const { granted } = await Notifications.getPermissionsAsync();
+  return granted || (await Notifications.requestPermissionsAsync()).granted;
+}
+
 /** Programme la notification. Renvoie ses identifiants, ou un message si ce n'est pas possible. */
 export async function programmer(e: Ev): Promise<{ ids: string[]; souci?: string }> {
   // Les valeurs « date », « daily »… sont celles de SchedulableTriggerInputTypes.
