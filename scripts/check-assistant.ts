@@ -25,3 +25,18 @@ const m = souvenirs(convs, 'c');
 assert.ok(m.indexOf('suivi') < m.indexOf('15 ans') && !m.includes('en cours') && !m.includes('réponse'));
 assert.ok(souvenirs(convs, null, 60).length <= 60);
 console.log('assistant OK');
+
+// Rappels du calendrier
+const { lireHeure, arrive, declencheur } = await import('../src/rappels.ts');
+assert.equal(lireHeure('14h'), '14:00'); assert.equal(lireHeure('14h30'), '14:30'); assert.equal(lireHeure('9:05'), '09:05');
+assert.equal(lireHeure('14'), '14:00'); assert.equal(lireHeure('25h'), null); assert.equal(lireHeure('midi'), null);
+const ev = { jour: '2026-11-23', heure: '14:00', titre: 'Exposé' };
+assert.ok(arrive({ ...ev, repetition: 'semaine' }, '2026-11-30') && !arrive({ ...ev, repetition: 'semaine' }, '2026-11-24'));
+assert.ok(arrive({ ...ev, repetition: 'jour' }, '2026-11-24') && !arrive({ ...ev, repetition: 'jour' }, '2026-11-22'));
+assert.ok(arrive({ ...ev, repetition: 'mois' }, '2026-12-23') && !arrive(ev, '2026-11-24'));
+const avant = new Date('2026-11-22T10:00:00');
+assert.deepEqual(declencheur({ ...ev, rappel: 15 }, avant), { type: 'date', date: new Date('2026-11-23T13:45:00') });
+assert.deepEqual(declencheur({ ...ev, rappel: 1440, repetition: 'semaine' }, avant), { type: 'weekly', weekday: 1, hour: 14, minute: 0 });
+assert.equal(declencheur({ ...ev, rappel: 0 }, new Date('2026-11-24T00:00:00')), null);
+assert.equal(declencheur({ ...ev, rappel: null }, avant), null);
+console.log('rappels OK');

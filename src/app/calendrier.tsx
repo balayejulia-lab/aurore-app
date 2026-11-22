@@ -1,6 +1,7 @@
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, StickyNote, Trash2 } from 'lucide-react-native';
+import { Bell, Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Repeat, StickyNote, Trash2 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
+import { annuler, arrive, lireHeure, programmer, RAPPELS, REPETITIONS, type Repetition } from '@/notifications';
 import { useApp } from '@/store';
 import { Bulle, Carte, confirmer, Ecran, H, LienRetour, T, tap } from '@/ui';
 
@@ -20,19 +21,40 @@ export default function Calendrier() {
   const [lieu, setLieu] = useState('');
   const [note, setNote] = useState('');
   const [erreur, setErreur] = useState('');
+  const [rappel, setRappel] = useState<number | null>(15);
+  const [repetition, setRepetition] = useState<Repetition>('non');
+  const [info, setInfo] = useState('');
 
   const cases: (Date | null)[] = [];
   const decalage = (new Date(mois.getFullYear(), mois.getMonth(), 1).getDay() + 6) % 7;
   for (let i = 0; i < decalage; i++) cases.push(null);
   for (let d = 1; d <= new Date(mois.getFullYear(), mois.getMonth() + 1, 0).getDate(); d++) cases.push(new Date(mois.getFullYear(), mois.getMonth(), d));
   while (cases.length % 7) cases.push(null);
-  const duJour = app.evenements.filter((e) => e.jour === jour).sort((a, b) => a.heure.localeCompare(b.heure));
+  const duJour = app.evenements.filter((e) => arrive(e, jour)).sort((a, b) => a.heure.localeCompare(b.heure));
   const libelle = new Date(`${jour}T00:00:00`).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/(^|\s)\S/g, (x) => x.toUpperCase());
-  const enregistrer = () => {
-    if (!titre.trim() || !/^\d{1,2}[:h]\d{2}$/.test(heure.trim())) return setErreur('Titre, date et heure sont requis.');
-    app.ajouterEvenement({ jour, titre: titre.trim(), heure: heure.trim().replace('h', ':'), lieu: lieu.trim(), note: note.trim() });
-    setForm(false); setTitre(''); setHeure(''); setLieu(''); setNote(''); setErreur('');
+  const enregistrer = async () => {
+    const h = lireHeure(heure);
+    if (!titre.trim()) return setErreur('Ajoute un titre.');
+    if (!h) return setErreur("Heure non reconnue : écris par exemple 14h ou 14h30.");
+    const e = { jour, titre: titre.trim(), heure: h, lieu: lieu.trim(), note: note.trim(), rappel, repetition };
+    const { ids, souci } = await programmer(e).catch(() => ({ ids: [] as string[], souci: "La notification n'a pas pu être programmée." }));
+    app.ajouterEvenement({ ...e, notifs: ids });
+    setInfo(souci ?? (ids.length ? `Rappel programmé : ${RAPPELS.find((r) => r[0] === rappel)?.[1].toLowerCase()}.` : ''));
+    setForm(false); setTitre(''); setHeure(''); setLieu(''); setNote(''); setErreur(''); setRappel(15); setRepetition('non');
   };
+  const puces = <V,>(options: [V, string][], valeur: V, choisir: (v: V) => void) => (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+      {options.map(([v, l]) => {
+        const on = v === valeur;
+        return (
+          <Pressable key={l} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => { tap(); choisir(v); }}
+            style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: on ? c.accent : c.stone100 }}>
+            <T size={13} weight="600" color={on ? '#FFFFFF' : c.soft}>{l}</T>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
   const champ = { height: 44, borderRadius: 12, borderWidth: 1, borderColor: c.ring, backgroundColor: c.stone50, paddingHorizontal: 14, fontSize: 14, color: c.ink };
 
   return (
@@ -53,7 +75,7 @@ export default function Calendrier() {
           {cases.map((d, i) => {
             const k = d && cle(d);
             const sel = k === jour;
-            const a = k && app.evenements.some((e) => e.jour === k);
+            const a = k && app.evenements.some((e) => arrive(e, k));
             return (
               <View key={i} style={{ width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 3 }}>
                 {d && (
@@ -76,9 +98,13 @@ export default function Calendrier() {
       {form && (
         <Carte style={{ gap: 10, marginBottom: 12 }}>
           <TextInput value={titre} onChangeText={setTitre} placeholder="Titre (ex : rendez-vous, concert…)" placeholderTextColor={c.faint} style={champ} autoFocus />
-          <TextInput value={heure} onChangeText={setHeure} placeholder="Heure (ex : 14:30)" placeholderTextColor={c.faint} keyboardType="numbers-and-punctuation" style={champ} />
+          <TextInput value={heure} onChangeText={setHeure} placeholder="Heure (ex : 14h30)" placeholderTextColor={c.faint} keyboardType="numbers-and-punctuation" style={champ} />
           <TextInput value={lieu} onChangeText={setLieu} placeholder="Lieu (optionnel)" placeholderTextColor={c.faint} style={champ} />
           <TextInput value={note} onChangeText={setNote} placeholder="Note (optionnel)" placeholderTextColor={c.faint} style={champ} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}><Bell size={14} color={c.soft} /><T size={13} weight="700" color={c.soft}>Me prévenir</T></View>
+          {puces(RAPPELS, rappel, setRappel)}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 }}><Repeat size={14} color={c.soft} /><T size={13} weight="700" color={c.soft}>Répéter</T></View>
+          {puces(REPETITIONS, repetition, setRepetition)}
           {!!erreur && <T size={12} color={c.rose600}>{erreur}</T>}
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
             <T size={14} color={c.muted} style={{ padding: 8 }} onPress={() => { setForm(false); setErreur(''); }}>Annuler</T>
@@ -86,6 +112,7 @@ export default function Calendrier() {
           </View>
         </Carte>
       )}
+      {!!info && <T size={13} color={c.soft} style={{ marginBottom: 10 }}>{info}</T>}
       {duJour.length === 0 ? (
         <Carte style={{ padding: 20 }}><T size={14} color={c.muted}>Rien de prévu ce jour-là.</T></Carte>
       ) : (
@@ -94,9 +121,14 @@ export default function Calendrier() {
             <Carte key={e.id} style={{ padding: 18, gap: 6 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <T size={15} weight="700" style={{ flex: 1 }}>{e.titre}</T>
-                <Pressable accessibilityLabel="Supprimer" onPress={() => confirmer('Supprimer ce rendez-vous ?', 'Il ne sera plus dans ton calendrier.', 'Le garder', () => app.supprimerEvenement(e.id))}><Trash2 size={15} color={c.faint} /></Pressable>
+                <Pressable accessibilityLabel="Supprimer" onPress={() => confirmer('Supprimer ce rendez-vous ?', 'Il ne sera plus dans ton calendrier.', 'Le garder', () => { annuler(e.notifs); app.supprimerEvenement(e.id); })}><Trash2 size={15} color={c.faint} /></Pressable>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><Clock size={13} color={c.muted} /><T size={13} color={c.muted}>{e.heure}</T></View>
+              {(e.rappel != null || (e.repetition ?? 'non') !== 'non') && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Bell size={13} color={c.muted} /><T size={13} color={c.muted}>{[e.rappel != null && RAPPELS.find((r) => r[0] === e.rappel)?.[1], (e.repetition ?? 'non') !== 'non' && REPETITIONS.find((r) => r[0] === e.repetition)?.[1].toLowerCase()].filter(Boolean).join(' · ')}</T>
+                </View>
+              )}
               {!!e.lieu && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><MapPin size={13} color={c.muted} /><T size={13} color={c.muted}>{e.lieu}</T></View>}
               {!!e.note && <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><StickyNote size={13} color={c.muted} /><T size={13} color={c.muted}>{e.note}</T></View>}
             </Carte>

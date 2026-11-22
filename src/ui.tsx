@@ -240,7 +240,7 @@ export function Ecran({ children, scroll = true, padTop = 24 }: { children: Reac
   const insets = useSafeAreaInsets();
   if (!scroll) return <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>{children}</View>;
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} keyboardShouldPersistTaps="handled"
+    <ScrollView style={{ flex: 1, backgroundColor: c.bg }} keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" automaticallyAdjustKeyboardInsets
       contentContainerStyle={{ paddingTop: insets.top + padTop, paddingHorizontal: 16, paddingBottom: 64 }}>
       {children}
     </ScrollView>

@@ -1,6 +1,6 @@
 import { BriefcaseMedical, Eye, Heart, HeartPulse, PartyPopper, PenLine, Phone, Plus, Shapes, ShieldCheck, Trash2, Wind, X, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Linking, Modal, Pressable, TextInput, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/store';
@@ -134,7 +134,9 @@ function Coque({ titre, couleur, fermer, children }: { titre: string; couleur: s
           <T size={14} weight="600" color={couleur}>{titre}</T>
           <Pressable accessibilityLabel="Fermer" onPress={fermer} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}><X size={20} color={c.faint} /></Pressable>
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 64 }}>{children}</View>
+        {/* Défile au-dessus du clavier, et un glissement vers le bas le ferme : le bouton reste toujours accessible. */}
+        <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive" automaticallyAdjustKeyboardInsets
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingBottom: 64 }}>{children}</ScrollView>
       </View>
     </Modal>
   );
