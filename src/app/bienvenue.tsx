@@ -221,8 +221,8 @@ function Notifications({ proche, onBack, onContinue }: { proche: boolean; onBack
         <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FFFBEB', alignItems: 'center', justifyContent: 'center', marginBottom: 20, borderWidth: 1, borderColor: c.ring }}><Bell size={28} color="#D97706" /></View>
         <H size={30} center>Active tes notifications</H>
         <T color={c.muted} center style={{ marginTop: 12 }}>{proche
-          ? "Tu recevras une notification quand la personne que tu accompagnes t'envoie un mot de soutien. C'est le seul moyen de le recevoir en dehors de l'app — pense à accepter."
-          : "Une citation chaque matin pour t'accompagner, et un mot si un proche t'en envoie un. Une seule notification par jour pour la citation, jamais plus — pense à accepter."}</T>
+          ? "Chaque matin à 7h, une idée d'attention ou une phrase qui aide, et de temps en temps un mot pour toi. Une seule par jour, jamais plus. Tu pourras changer l'heure ou l'arrêter dans les réglages."
+          : "Chaque matin à 7h, un petit mot pour t'accompagner : une citation, un défi doux, ou tes propres mots. Une seule par jour, jamais plus. Tu pourras changer l'heure ou l'arrêter dans les réglages."}</T>
       </View>
       <View style={{ padding: 24, borderRadius: 24, backgroundColor: c.surface, borderWidth: 1, borderColor: c.ring, alignItems: 'center' }}>
         {/* Vraie demande d'autorisation iOS ; le contenu quotidien est programmé ailleurs. */}

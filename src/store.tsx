@@ -26,7 +26,7 @@ type Donnees = {
   profil: Profil | null; surnom: string; partenaire: string | null; photos: string[]; fondHero: string;
   pages: Page[]; pin: string | null; verrouille: boolean; raisons: Raison[]; victoires: Victoire[];
   favoris: Favori[]; evenements: Evenement[]; contacts: Contact[]; motDoux: string; rappels: boolean;
-  objectifs: Objectif[]; envies: Envie[]; scene: string | null; assistantUtilise?: boolean; conversations?: Conversation[];
+  objectifs: Objectif[]; envies: Envie[]; scene: string | null; assistantUtilise?: boolean; heureMatin?: string; conversations?: Conversation[];
 };
 const CLE = 'aurore-donnees-v1';
 const VIDE: Donnees = {
@@ -74,7 +74,7 @@ function useAppState() {
     surnom: d.surnom, setSurnom: champ('surnom'),
     partenaire: d.partenaire, setPartenaire: champ('partenaire'),
     visites: 6,
-    photos: d.photos, fondHero: d.fondHero, setFondHero: champ('fondHero'), rappels: d.rappels, setRappels: champ('rappels'),
+    photos: d.photos, fondHero: d.fondHero, setFondHero: champ('fondHero'), rappels: d.rappels, setRappels: champ('rappels'), heureMatin: d.heureMatin ?? '07:00', setHeureMatin: champ('heureMatin'),
     ajouterPhoto: (uri: string) => liste('photos', (l) => [uri, ...l]),
     retirerPhoto: (uri: string) => liste('photos', (l) => l.filter((x) => x !== uri)),
     pages: d.pages,

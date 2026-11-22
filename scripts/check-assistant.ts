@@ -40,3 +40,19 @@ assert.deepEqual(declencheur({ ...ev, rappel: 1440, repetition: 'semaine' }, ava
 assert.equal(declencheur({ ...ev, rappel: 0 }, new Date('2026-11-24T00:00:00')), null);
 assert.equal(declencheur({ ...ev, rappel: null }, avant), null);
 console.log('rappels OK');
+
+// Notification du matin : discrète, sans nourriture ni corps, variée, et avec ses propres mots une fois par semaine.
+const { contenuMatin } = await import('../src/matin.ts');
+const perso = { raisons: [{ text: 'Revoir la mer avec Léa' }], motDoux: '', victoires: [{ title: "J'ai ressorti mon carnet" }] };
+const vus = new Set<string>();
+for (let n = 20000; n < 20070; n++) for (const pr of ['patient', 'proche'] as const) {
+  const m = contenuMatin(pr, n, perso);
+  assert.ok(m.titre && m.corps && m.url.startsWith(`/${pr}`));
+  assert.doesNotMatch(`${m.titre} ${m.corps}`, /cuisin|mang|repas|go[uû]ter|calori|poids|maladi|anorex|boulim|tca\b/i, m.corps);
+  vus.add(m.corps);
+}
+assert.ok(vus.size > 30);
+assert.equal(contenuMatin('patient', 3, perso).corps, 'Revoir la mer avec Léa');
+assert.match(contenuMatin('patient', 6, perso).corps, /carnet/);
+assert.equal(contenuMatin('patient', 3, { raisons: [], motDoux: '', victoires: [] }).titre, '☀️ Ton mot du matin');
+console.log('matin OK');

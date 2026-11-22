@@ -5,6 +5,8 @@ import { Alert, Platform, Pressable, Switch, TextInput, View } from 'react-nativ
 import { CO_FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/coFoundersLetter';
 import { FOUNDERS_LETTER_PARAGRAPHS } from '@/contenu/foundersLetter';
 import { EcranUrgence } from '@/ecrans/Urgence';
+import { HEURES_MATIN } from '@/matin';
+import { autoriser } from '@/notifications';
 import { useApp } from '@/store';
 import { Bulle, Carte, ChoixAmbiance, Ecran, H, LienRetour, T, t, tap } from '@/ui';
 
@@ -54,15 +56,26 @@ export default function Reglages() {
           <ChoixAmbiance />
         </Carte>
 
-        {!proche && (
-          <Carte>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Bulle Icone={Bell} iconTaille={18} />
-              <View style={{ flex: 1 }}><H size={20}>Petits rappels doux</H><T size={14} color={c.muted}>Un message si tu ne reviens pas depuis quelques jours — jamais insistant</T></View>
-              <Switch value={app.rappels} onValueChange={app.setRappels} trackColor={{ true: c.accent, false: '#D6D3D1' }} accessibilityLabel="Petits rappels doux" />
+        <Carte>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Bulle Icone={Bell} iconTaille={18} />
+            <View style={{ flex: 1 }}><H size={20}>Mon petit mot du matin</H><T size={14} color={c.muted}>{proche ? "Une idée d'attention ou une phrase qui aide" : 'Une citation, un petit défi, ou tes propres mots'} · une seule par jour</T></View>
+            <Switch value={app.rappels} onValueChange={(v) => { app.setRappels(v); if (v) autoriser(); }} trackColor={{ true: c.accent, false: '#D6D3D1' }} accessibilityLabel="Mon petit mot du matin" />
+          </View>
+          {app.rappels && (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 16 }}>
+              {HEURES_MATIN.map((h) => {
+                const on = h === app.heureMatin;
+                return (
+                  <Pressable key={h} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => { tap(); app.setHeureMatin(h); }}
+                    style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: on ? c.accent : c.stone100 }}>
+                    <T size={13} weight="600" color={on ? '#FFFFFF' : c.soft}>{h.replace(':', 'h').replace('h00', 'h')}</T>
+                  </Pressable>
+                );
+              })}
             </View>
-          </Carte>
-        )}
+          )}
+        </Carte>
 
         <Carte onPress={() => router.push('/liens')} label="Comptes liés">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>

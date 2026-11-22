@@ -2,6 +2,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
+import { contenuMatin, numeroJour } from './matin';
 import { declencheur, type Ev } from './rappels';
 export * from './rappels';
 
@@ -37,4 +38,25 @@ export function annuler(ids: string[] = []) {
 // Affiche aussi la notification quand l'app est ouverte.
 if (Platform.OS !== 'web') {
   Notifications.setNotificationHandler({ handleNotification: async () => ({ shouldShowBanner: true, shouldShowList: true, shouldPlaySound: true, shouldSetBadge: false }) });
+}
+
+// Notification du matin : on programme les 30 prochains jours, chacun avec son message.
+// Sans ouverture de l'app pendant 30 jours, elles s'arrêtent d'elles-mêmes (on n'insiste pas).
+export async function planifierMatin(profil: 'patient' | 'proche' | null, heure: string, actif: boolean, perso: Parameters<typeof contenuMatin>[2]) {
+  if (Platform.OS === 'web') return;
+  const prevues = await Notifications.getAllScheduledNotificationsAsync();
+  await Promise.all(prevues.filter((x) => x.identifier.startsWith('matin-')).map((x) => Notifications.cancelScheduledNotificationAsync(x.identifier)));
+  if (!profil || !actif || !(await Notifications.getPermissionsAsync()).granted) return;
+  const [h, m] = heure.split(':').map(Number);
+  const maintenant = new Date();
+  for (let i = 0; i < 31; i++) {
+    const quand = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + i, h, m);
+    if (quand <= maintenant) continue;
+    const { titre, corps, url } = contenuMatin(profil, numeroJour(quand), perso);
+    await Notifications.scheduleNotificationAsync({
+      identifier: `matin-${i}`,
+      content: { title: titre, body: corps, data: { url }, sound: true },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: quand },
+    });
+  }
 }
